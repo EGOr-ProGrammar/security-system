@@ -129,7 +129,6 @@ public class InteractiveModeController {
             case 1 -> {
                 system.armSystem();
                 view.displayMessage("Режим охраны установлен");
-                // Логирование теперь через enum
             }
             case 2 -> {
                 system.disarmSystem();
@@ -158,7 +157,9 @@ public class InteractiveModeController {
                 boolean connectivity = system.checkConnectivity();
                 view.displayMessage("Подключение: " + (connectivity ? "УСПЕШНО" : "ОШИБКА"));
             }
-            case 9 -> view.displayEventLog(system.getEventLog());
+            case 9 -> {
+                view.displayEventLog(systemController.getCsvLogger(), system.getSystemId());
+            }
             case 10 -> showSpecificFunctions(system);
         }
     }
@@ -328,8 +329,10 @@ public class InteractiveModeController {
             view.waitForEnter();
             return;
         }
+
         String filename = ConsoleInputHandler.getStringInput("Введите имя файла для сохранения (например: all_event_logs.txt): ");
         String description = ConsoleInputHandler.getStringInput("Введите общее описание для логов: ");
+
         try (PrintWriter writer = new PrintWriter(new FileWriter(filename, true))) {
             writer.println("=== ОБЩИЙ ЖУРНАЛ СОБЫТИЙ СИСТЕМ БЕЗОПАСНОСТИ ===");
             writer.println("Описание: " + description);
@@ -337,10 +340,14 @@ public class InteractiveModeController {
             writer.println("Количество устройств: " + systemController.getAllSystems().size());
             writer.println("===============================================");
             writer.println();
+
             int savedCount = 0;
+            CSVLogger csvLogger = systemController.getCsvLogger();
+
             for (SecuritySystem system : systemController.getAllSystems()) {
                 String deviceType = system.getClass().getSimpleName();
                 String deviceName = system.getSystemId() + " (" + system.getLocation() + ")";
+
                 writer.println("--- УСТРОЙСТВО: " + deviceName + " ---");
                 writer.println("Тип: " + deviceType);
                 writer.println("Режим безопасности: " + system.getSecurityMode());
@@ -350,26 +357,34 @@ public class InteractiveModeController {
                 writer.println();
                 writer.println("События:");
                 writer.println("--------");
-                List<String> eventLog = system.getEventLog();
-                if (eventLog.isEmpty()) {
+
+                List<String> logs = csvLogger.getLogsBySystemId(system.getSystemId(), 100);
+                if (logs.isEmpty()) {
                     writer.println("Журнал событий пуст");
                 } else {
-                    for (String event : eventLog) {
-                        writer.println(event);
+                    for (String log : logs) {
+                        String[] parts = log.split(",");
+                        if (parts.length >= 9) {
+                            writer.println("[" + parts[0] + "] " + parts[7] + " - " + parts[8]);
+                        }
                     }
                 }
+
                 writer.println();
                 writer.println("----------------------------------------");
                 writer.println();
                 savedCount++;
             }
+
             writer.println("=== ЭКСПОРТ ЗАВЕРШЕН ===");
             writer.println("Успешно сохранено: " + savedCount + " устройств");
             writer.println("===============================================");
+
             view.displayMessage("УСПЕШНО сохранены журналы событий " + savedCount + " устройств в файл: " + filename);
         } catch (java.io.IOException e) {
             view.displayError("ОШИБКА при сохранении логов в файл: " + e.getMessage());
         }
+
         view.waitForEnter();
     }
 }

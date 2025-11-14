@@ -23,14 +23,12 @@ public class SecuritySystemController {
         this.currentFileName = initialFileName;
     }
 
-    // Добавление системы с логированием
     public void addSystem(SecuritySystem system) {
         system.setCsvLogger(csvLogger);
         systems.add(system);
         csvLogger.logEvent(system.getSystemId(), EventType.SYSTEM_ADDED);
     }
 
-    // Удаление системы с логированием
     public boolean removeSystem(int index) {
         if (index >= 0 && index < systems.size()) {
             SecuritySystem removed = systems.remove(index);
@@ -40,17 +38,14 @@ public class SecuritySystemController {
         return false;
     }
 
-    // Получение системы по индексу
     public SecuritySystem getSystem(int index) {
         return (index >= 0 && index < systems.size()) ? systems.get(index) : null;
     }
 
-    // Получение всех систем (копия для безопасности)
     public List<SecuritySystem> getAllSystems() {
         return new ArrayList<>(systems);
     }
 
-    // Загрузка систем из файла с логированием
     public boolean loadSystemsFromFile(String fileName, boolean append) {
         try {
             if (!append) {
@@ -76,19 +71,16 @@ public class SecuritySystemController {
         }
     }
 
-    // Смена текущего файла с логированием
     public void setFileName(String fileName) {
         String oldFile = this.currentFileName;
         this.currentFileName = fileName;
         csvLogger.logEvent("SYSTEM", EventType.CONFIG_CHANGED, "Файл изменен с " + oldFile + " на " + fileName);
     }
 
-    // Получение имени текущего файла
     public String getCurrentFileName() {
         return currentFileName;
     }
 
-    // Постановка системы на охрану
     public boolean armSystem(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
@@ -99,7 +91,6 @@ public class SecuritySystemController {
         return false;
     }
 
-    // Снятие системы с охраны
     public boolean disarmSystem(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
@@ -110,7 +101,6 @@ public class SecuritySystemController {
         return false;
     }
 
-    // Изменение режима безопасности с логированием
     public boolean setSecurityMode(int index, String mode) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
@@ -126,7 +116,6 @@ public class SecuritySystemController {
         return false;
     }
 
-    // Выполнение самодиагностики с логированием результата
     public boolean performSelfTest(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
@@ -137,7 +126,6 @@ public class SecuritySystemController {
         return false;
     }
 
-    // Симуляция аварии
     public String simulateEmergency(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
@@ -147,7 +135,6 @@ public class SecuritySystemController {
         return "Ошибка: система не найдена";
     }
 
-    // Получение статусного отчета
     public String getStatusReport(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
@@ -157,7 +144,6 @@ public class SecuritySystemController {
         return "Ошибка: система не найдена";
     }
 
-    // Калибровка сенсоров
     public boolean calibrateSensors(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
@@ -168,7 +154,6 @@ public class SecuritySystemController {
         return false;
     }
 
-    // Проверка подключения
     public boolean checkConnectivity(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
@@ -178,7 +163,6 @@ public class SecuritySystemController {
         return false;
     }
 
-    // Логирование состояния всех систем
     public void logAllSystemsState() {
         csvLogger.logEvent("SYSTEM", EventType.INFO, "Логирование состояния всех систем (" + systems.size() + " всего)");
         for (SecuritySystem system : systems) {
@@ -186,15 +170,17 @@ public class SecuritySystemController {
         }
     }
 
-    // Установка интервала логирования
     public void setCSVLogInterval(int seconds) {
         csvLogger.setLogInterval(seconds);
         csvLogger.logEvent("SYSTEM", EventType.CONFIG_CHANGED, "Интервал CSV логирования установлен на " + seconds + " секунд");
     }
 
-    // Получение количества систем
     public int getSystemCount() {
         return systems.size();
+    }
+
+    public CSVLogger getCsvLogger() {
+        return csvLogger;
     }
 
     // Проверка существования системы по индексу
