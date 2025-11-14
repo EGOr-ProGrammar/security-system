@@ -7,7 +7,7 @@ import views.ConsoleView;
 
 public class Main {
     public static void main(String[] args) {
-        String defaultFile = "../src/main/java/security_systems.txt";
+        String defaultFile = "D:\\docs\\вуз\\3 курс\\java\\lab5\\src\\main\\java\\security_systems.txt";
 
         TextFileParser textFileParser = new TextFileParser();
         CSVLogger csvLogger = new CSVLogger();
