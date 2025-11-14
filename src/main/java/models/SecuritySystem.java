@@ -36,7 +36,7 @@ public abstract class SecuritySystem {
         if (mode.equals("Отключено") || mode.equals("Дома") || mode.equals("Отсутствие")) {
             this.securityMode = mode;
             if (csvLogger != null) {
-                csvLogger.logEvent(systemId, EventType.MODE_CHANGED, mode);
+                csvLogger.logEvent(this, EventType.MODE_CHANGED, mode); // Передаем this вместо systemId
             }
         } else {
             throw new IllegalArgumentException("Недопустимый режим безопасности");
@@ -47,7 +47,7 @@ public abstract class SecuritySystem {
         if (!isArmed) {
             isArmed = true;
             if (csvLogger != null) {
-                csvLogger.logEvent(systemId, EventType.SYSTEM_ARMED);
+                csvLogger.logEvent(this, EventType.SYSTEM_ARMED); // Передаем this
             }
         }
     }
@@ -56,7 +56,7 @@ public abstract class SecuritySystem {
         if (isArmed) {
             isArmed = false;
             if (csvLogger != null) {
-                csvLogger.logEvent(systemId, EventType.SYSTEM_DISARMED);
+                csvLogger.logEvent(this, EventType.SYSTEM_DISARMED); // Передаем this
             }
         }
     }
@@ -64,10 +64,11 @@ public abstract class SecuritySystem {
     public String sendAlarm(String alarmType) {
         String alarmMessage = "ТРЕВОГА: " + alarmType + " - " + java.time.LocalDateTime.now();
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.EMERGENCY_SIMULATED, alarmType);
+            csvLogger.logEvent(this, EventType.EMERGENCY_SIMULATED, alarmType); // Передаем this
         }
         return alarmMessage;
     }
+
 
     public void updateSensorStatus() {
         batteryLevel = Math.max(0, Math.min(100, batteryLevel + random.nextInt(8) - 5));

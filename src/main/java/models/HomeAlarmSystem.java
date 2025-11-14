@@ -29,7 +29,7 @@ public class HomeAlarmSystem extends SecuritySystem {
         boolean result = doorTest && windowTest && motionTest;
 
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, result ? EventType.SELF_TEST_SUCCESS : EventType.SELF_TEST_FAILED);
+            csvLogger.logEvent(this, result ? EventType.SELF_TEST_SUCCESS : EventType.SELF_TEST_FAILED);
         }
         return result;
     }
@@ -59,7 +59,7 @@ public class HomeAlarmSystem extends SecuritySystem {
     public void calibrateSensors() {
         sensitivityLevel = Math.max(1, Math.min(5, sensitivityLevel + random.nextInt(3) - 1));
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.CALIBRATION_COMPLETE, "Sensitivity: " + sensitivityLevel);
+            csvLogger.logEvent(this, EventType.CALIBRATION_COMPLETE, "Sensitivity: " + sensitivityLevel);
         }
     }
 
@@ -67,7 +67,7 @@ public class HomeAlarmSystem extends SecuritySystem {
     public boolean checkConnectivity() {
         boolean connected = random.nextDouble() > 0.2;
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.CONNECTIVITY_CHECK, connected ? "OK" : "FAILED");
+            csvLogger.logEvent(this, EventType.CONNECTIVITY_CHECK, connected ? "OK" : "FAILED");
         }
         return connected;
     }
@@ -75,14 +75,14 @@ public class HomeAlarmSystem extends SecuritySystem {
     public void toggleDoorSensors() {
         doorSensorsActive = !doorSensorsActive;
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.SENSOR_TOGGLED, "Door sensors: " + doorSensorsActive);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Door sensors: " + doorSensorsActive);
         }
     }
 
     public void toggleWindowSensors() {
         windowSensorsActive = !windowSensorsActive;
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.SENSOR_TOGGLED, "Window sensors: " + windowSensorsActive);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Window sensors: " + windowSensorsActive);
         }
     }
 
@@ -90,7 +90,7 @@ public class HomeAlarmSystem extends SecuritySystem {
         if (level >= 1 && level <= 5) {
             sensitivityLevel = level;
             if (csvLogger != null) {
-                csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "Sensitivity: " + level);
+                csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Sensitivity: " + level);
             }
         }
     }
@@ -99,7 +99,7 @@ public class HomeAlarmSystem extends SecuritySystem {
         silentMode = !silentMode;
         alarmSound = silentMode ? "Без звука" : "Сирена";
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "Silent mode: " + silentMode);
+            csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Silent mode: " + silentMode);
         }
     }
 
@@ -107,7 +107,7 @@ public class HomeAlarmSystem extends SecuritySystem {
         if (isArmed) {
             sendAlarm("Обнаружено вторжение!");
             if (csvLogger != null) {
-                csvLogger.logEvent(systemId, EventType.INTRUSION_DETECTED);
+                csvLogger.logEvent(this, EventType.INTRUSION_DETECTED);
             }
         }
     }
@@ -123,21 +123,21 @@ public class HomeAlarmSystem extends SecuritySystem {
     public void setDoorSensorsActive(boolean active) {
         this.doorSensorsActive = active;
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.SENSOR_TOGGLED, "Door sensors: " + active);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Door sensors: " + active);
         }
     }
 
     public void setWindowSensorsActive(boolean active) {
         this.windowSensorsActive = active;
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.SENSOR_TOGGLED, "Window sensors: " + active);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Window sensors: " + active);
         }
     }
 
     public void setMotionSensorsActive(boolean active) {
         this.motionSensorsActive = active;
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.SENSOR_TOGGLED, "Motion sensors: " + active);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Motion sensors: " + active);
         }
     }
 
@@ -145,7 +145,7 @@ public class HomeAlarmSystem extends SecuritySystem {
         if (level >= 1 && level <= 5) {
             this.sensitivityLevel = level;
             if (csvLogger != null) {
-                csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "Sensitivity: " + level);
+                csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Sensitivity: " + level);
             }
         }
     }
@@ -154,7 +154,7 @@ public class HomeAlarmSystem extends SecuritySystem {
         this.silentMode = silent;
         this.alarmSound = silent ? "Без звука" : "Сирена";
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "Silent mode: " + silent);
+            csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Silent mode: " + silent);
         }
     }
 
@@ -162,7 +162,7 @@ public class HomeAlarmSystem extends SecuritySystem {
         if (sound != null && !sound.isBlank()) {
             this.alarmSound = sound;
             if (csvLogger != null) {
-                csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "Alarm sound: " + sound);
+                csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Alarm sound: " + sound);
             }
         }
     }
