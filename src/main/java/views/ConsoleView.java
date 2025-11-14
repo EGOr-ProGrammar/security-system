@@ -1,25 +1,29 @@
 package views;
 
+import models.CSVLogger;
 import models.SecuritySystem;
+
 import java.util.List;
 
 public class ConsoleView {
 
     public void displayHelp() {
-        System.out.println("""
-        Использование: java -jar security-system.jar [ключи]
-        Ключи: -h, --help, -f, --file, -s, --state, -c, --continuous, -l, --log
-        """);
+        System.out.println("Использование: java -jar security-system.jar [опции] <файл>");
+        System.out.println("  -h, --help             Показать справку");
+        System.out.println("  -f, --file <путь>      Загрузить системы из файла");
+        System.out.println("  -s, --state            Показать состояние систем");
+        System.out.println("  -c, --continuous       Непрерывный режим мониторинга");
+        System.out.println("  -l, --log              Показать логи событий");
     }
 
     public void displaySystemState(List<SecuritySystem> systems, String fileName) {
         System.out.println("\n=== СОСТОЯНИЕ СИСТЕМ ===");
         System.out.println("Файл: " + fileName);
-
         if(systems.isEmpty()) {
             System.out.println("Нет доступных систем.");
             return;
         }
+
         for (int i = 0; i < systems.size(); i++) {
             System.out.printf("%d. %s\n", i + 1, systems.get(i));
         }
@@ -97,6 +101,24 @@ public class ConsoleView {
         System.out.println("2. Изменить файл");
     }
 
+    // Метод для отображения логов через CSVLogger
+    public void displayEventLog(CSVLogger csvLogger, String systemId) {
+        System.out.println("\n=== ЖУРНАЛ СОБЫТИЙ СИСТЕМЫ: " + systemId + " ===");
+        List<String> logs = csvLogger.getLogsBySystemId(systemId, 50);
+
+        if (logs.isEmpty()) {
+            System.out.println("Журнал событий пуст");
+            return;
+        }
+
+        for (String log : logs) {
+            String[] parts = log.split(",");
+            if (parts.length >= 9) {
+                System.out.printf("[%s] %s - %s\n", parts[0], parts[7], parts[8]);
+            }
+        }
+    }
+
     public void displayEventLog(List<String> eventLog) {
         if (eventLog.isEmpty()) {
             displayMessage("Журнал событий пуст");
@@ -106,10 +128,31 @@ public class ConsoleView {
         }
     }
 
+    public void displayAllLogs(CSVLogger csvLogger) {
+        System.out.println("\n=== ВСЕ ЛОГИ СИСТЕМЫ ===");
+        List<String> logs = csvLogger.getRecentLogs(100);
+
+        if (logs.isEmpty()) {
+            System.out.println("Логи отсутствуют.");
+            return;
+        }
+
+        for (String log : logs) {
+            String[] parts = log.split(",");
+            if (parts.length >= 9) {
+                System.out.printf("[%s] %s - %s - %s\n", parts[0], parts[1], parts[7], parts[8]);
+            }
+        }
+    }
+
     public void waitForEnter() {
         System.out.print("Нажмите Enter для продолжения...");
         try {
             System.in.read();
         } catch (Exception e) {}
+    }
+
+    public void displayPrompt(String prompt) {
+        System.out.print(prompt + ": ");
     }
 }
