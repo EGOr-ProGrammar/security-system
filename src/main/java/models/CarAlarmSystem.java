@@ -1,5 +1,9 @@
 package models;
 
+import models.dto.CarAlarmStatusReport;
+import models.dto.EmergencyEvent;
+import models.dto.SystemStatusReport;
+
 public class CarAlarmSystem extends SecuritySystem {
 
     private boolean shockSensorActive;

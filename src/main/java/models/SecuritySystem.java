@@ -1,5 +1,8 @@
 package models;
 
+import models.dto.EmergencyEvent;
+import models.dto.SystemStatusReport;
+
 import java.util.Random;
 
 public abstract class SecuritySystem {

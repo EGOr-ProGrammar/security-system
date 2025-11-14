@@ -1,5 +1,9 @@
 package models;
 
+import models.dto.EmergencyEvent;
+import models.dto.HomeAlarmStatusReport;
+import models.dto.SystemStatusReport;
+
 public class HomeAlarmSystem extends SecuritySystem {
 
     private boolean doorSensorsActive;

@@ -1,5 +1,9 @@
 package models;
 
+import models.dto.BiometricLockStatusReport;
+import models.dto.EmergencyEvent;
+import models.dto.SystemStatusReport;
+
 import java.util.HashMap;
 import java.util.Map;
 

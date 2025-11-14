@@ -1,6 +1,7 @@
 package views;
 
 import models.*;
+import models.dto.*;
 
 import java.util.List;
 

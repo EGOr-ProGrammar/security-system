@@ -1,4 +1,4 @@
-package models;
+package models.dto;
 
 /**
  * Отчет о состоянии домашней сигнализации.

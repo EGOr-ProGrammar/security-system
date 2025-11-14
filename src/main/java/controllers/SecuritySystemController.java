@@ -2,6 +2,8 @@ package controllers;
 
 import models.*;
 import models.CSVLogger;
+import models.dto.EmergencyEvent;
+import models.dto.SystemStatusReport;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,5 +1,7 @@
 package controllers;
 
+import models.dto.EmergencyEvent;
+import models.dto.SystemStatusReport;
 import views.ConsoleView;
 import models.*;
 import views.ConsoleInputHandler;
