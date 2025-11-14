@@ -8,12 +8,10 @@ import java.util.List;
 public class ConsoleView {
 
     public void displayHelp() {
-        System.out.println("Использование: java -jar security-system.jar [опции] <файл>");
-        System.out.println("  -h, --help             Показать справку");
-        System.out.println("  -f, --file <путь>      Загрузить системы из файла");
-        System.out.println("  -s, --state            Показать состояние систем");
-        System.out.println("  -c, --continuous       Непрерывный режим мониторинга");
-        System.out.println("  -l, --log              Показать логи событий");
+        System.out.println("""
+            Использование: java -jar security-system.jar [ключи]
+            Ключи: -h, --help, -f, --file, -s, --state, -c, --continuous, -l, --log
+            """);
     }
 
     public void displaySystemState(List<SecuritySystem> systems, String fileName) {
@@ -119,6 +117,7 @@ public class ConsoleView {
         }
     }
 
+    // Перегрузка для совместимости со старым кодом (временно)
     public void displayEventLog(List<String> eventLog) {
         if (eventLog.isEmpty()) {
             displayMessage("Журнал событий пуст");
@@ -145,12 +144,9 @@ public class ConsoleView {
         }
     }
 
-    public void waitForEnter() {
-        System.out.print("Нажмите Enter для продолжения...");
-        try {
-            System.in.read();
-        } catch (Exception e) {}
-    }
+     public void waitForEnter() {
+         ConsoleInputHandler.waitForEnter();
+     }
 
     public void displayPrompt(String prompt) {
         System.out.print(prompt + ": ");
