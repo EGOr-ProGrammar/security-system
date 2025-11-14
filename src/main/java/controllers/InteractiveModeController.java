@@ -1,21 +1,21 @@
 package controllers;
 
+import config.ConfigManager;
 import models.dto.EmergencyEvent;
 import models.dto.SystemStatusReport;
 import views.ConsoleView;
 import models.*;
 import views.ConsoleInputHandler;
+
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Обеспечивает исполнение команд, введенных пользователем.
- */
 public class InteractiveModeController {
     private final SecuritySystemController systemController;
     private final ConsoleView view;
+    private final ConfigManager config = ConfigManager.getInstance();
     private boolean continuousMonitoring = false;
     private boolean csvLogging = false;
 
@@ -26,10 +26,11 @@ public class InteractiveModeController {
     }
 
     public void run() {
-        view.displayMessage("=== ИНТЕРАКТИВНЫЙ РЕЖИМ УПРАВЛЕНИЯ БЕЗОПАСНОСТЬЮ ===");
+        view.displayMessage(config.getString("interactive.title"));
         while (true) {
             view.displayMainMenu(systemController.getCurrentFileName());
-            int choice = ConsoleInputHandler.getIntInput("Выберите пункт меню: ", 0, 9);
+            int choice = ConsoleInputHandler.getIntInput(config.getString("prompt.choose") + " ", 0, 8);
+
             switch (choice) {
                 case 1 -> addSystem();
                 case 2 -> removeSystem();
@@ -39,9 +40,9 @@ public class InteractiveModeController {
                 case 6 -> fileOperations();
                 case 7 -> continuousMonitoring();
                 case 8 -> csvLogging();
-                case 9 -> saveAllEventLogsToFile();
+//                case 9 -> saveAllEventLogsToFile();
                 case 0 -> {
-                    view.displayMessage("Выход из программы.");
+                    view.displayMessage(config.getString("menu.main.exit"));
                     systemController.close();
                     return;
                 }
@@ -56,12 +57,14 @@ public class InteractiveModeController {
         int typeIndex = ConsoleInputHandler.getChoiceFromList("Выберите тип системы:", deviceTypes);
         String id = ConsoleInputHandler.getStringInput("Введите ID системы: ");
         String location = ConsoleInputHandler.getStringInput("Введите местоположение: ");
+
         SecuritySystem newSystem = switch (typeIndex) {
             case 0 -> new HomeAlarmSystem(id, location);
             case 1 -> new BiometricLock(id, location);
             case 2 -> new CarAlarmSystem(id, location);
             default -> throw new IllegalStateException("Неверный тип системы");
         };
+
         systemController.addSystem(newSystem);
         view.displayMessage("Система успешно добавлена!");
         view.waitForEnter();
@@ -70,8 +73,10 @@ public class InteractiveModeController {
     private void removeSystem() {
         listSystems();
         if (systemController.getAllSystems().isEmpty()) return;
+
         int index = ConsoleInputHandler.getIntInput("Введите номер системы для удаления: ",
                 1, systemController.getAllSystems().size()) - 1;
+
         if (ConsoleInputHandler.getConfirmation("Вы уверены?")) {
             if (systemController.removeSystem(index)) {
                 view.displayMessage("Система удалена!");
@@ -90,13 +95,20 @@ public class InteractiveModeController {
     private void modifySystem() {
         listSystems();
         if (systemController.getAllSystems().isEmpty()) return;
+
         int index = ConsoleInputHandler.getIntInput("Введите номер системы: ",
                 1, systemController.getAllSystems().size()) - 1;
+
         SecuritySystem system = systemController.getSystem(index);
         if (system != null) {
             String newLocation = ConsoleInputHandler.getStringInput("Новое местоположение: ");
             system.setLocation(newLocation);
-            List<String> modes = Arrays.asList("Отключено", "Дома", "Отсутствие");
+
+            List<String> modes = Arrays.asList(
+                    config.getString("mode.off"),
+                    config.getString("mode.home"),
+                    config.getString("mode.away")
+            );
             int modeIndex = ConsoleInputHandler.getChoiceFromList("Выберите режим безопасности:", modes);
             system.setSecurityMode(modes.get(modeIndex));
             view.displayMessage("Система изменена!");
@@ -107,8 +119,10 @@ public class InteractiveModeController {
     private void systemOperations() {
         listSystems();
         if (systemController.getAllSystems().isEmpty()) return;
+
         int index = ConsoleInputHandler.getIntInput("Введите номер системы: ",
                 1, systemController.getAllSystems().size()) - 1;
+
         SecuritySystem system = systemController.getSystem(index);
         if (system != null) {
             systemOperationsMenu(system);
@@ -118,8 +132,10 @@ public class InteractiveModeController {
     private void systemOperationsMenu(SecuritySystem system) {
         while (true) {
             view.displaySystemOperationsMenu(system);
-            int choice = ConsoleInputHandler.getIntInput("Выберите действие: ", 0, 10);
+            int choice = ConsoleInputHandler.getIntInput(config.getString("prompt.choose") + " ", 0, 10);
+
             if (choice == 0) break;
+
             executeSystemOperation(system, choice);
             system.updateSensorStatus();
             view.waitForEnter();
@@ -137,7 +153,11 @@ public class InteractiveModeController {
                 view.displayMessage("Режим охраны снят");
             }
             case 3 -> {
-                List<String> modes = Arrays.asList("Отключено", "Дома", "Отсутствие");
+                List<String> modes = Arrays.asList(
+                        config.getString("mode.off"),
+                        config.getString("mode.home"),
+                        config.getString("mode.away")
+                );
                 int modeIndex = ConsoleInputHandler.getChoiceFromList("Выберите режим безопасности:", modes);
                 system.setSecurityMode(modes.get(modeIndex));
                 view.displayMessage("Режим безопасности установлен");
@@ -181,7 +201,8 @@ public class InteractiveModeController {
 
     private void homeAlarmSpecificOperations(HomeAlarmSystem alarm) {
         view.displayHomeAlarmMenu();
-        int choice = ConsoleInputHandler.getIntInput("Выберите действие: ", 1, 5);
+        int choice = ConsoleInputHandler.getIntInput(config.getString("prompt.choose") + " ", 1, 5);
+
         switch (choice) {
             case 1 -> {
                 alarm.toggleDoorSensors();
@@ -209,7 +230,8 @@ public class InteractiveModeController {
 
     private void biometricLockSpecificOperations(BiometricLock lock) {
         view.displayBiometricLockMenu();
-        int choice = ConsoleInputHandler.getIntInput("Выберите действие: ", 1, 5);
+        int choice = ConsoleInputHandler.getIntInput(config.getString("prompt.choose") + " ", 1, 5);
+
         switch (choice) {
             case 1 -> {
                 String fingerprint = ConsoleInputHandler.getStringInput("Введите ID отпечатка: ");
@@ -239,7 +261,8 @@ public class InteractiveModeController {
 
     private void carAlarmSpecificOperations(CarAlarmSystem carAlarm) {
         view.displayCarAlarmMenu();
-        int choice = ConsoleInputHandler.getIntInput("Выберите действие: ", 1, 5);
+        int choice = ConsoleInputHandler.getIntInput(config.getString("prompt.choose") + " ", 1, 5);
+
         switch (choice) {
             case 1 -> {
                 carAlarm.activatePanicMode();
@@ -268,7 +291,8 @@ public class InteractiveModeController {
 
     private void fileOperations() {
         view.displayFileOperationsMenu();
-        int choice = ConsoleInputHandler.getIntInput("Выберите действие: ", 1, 2);
+        int choice = ConsoleInputHandler.getIntInput(config.getString("prompt.choose") + " ", 1, 2);
+
         switch (choice) {
             case 1 -> {
                 String fileName = ConsoleInputHandler.getStringInput("Имя файла: ");
@@ -291,6 +315,7 @@ public class InteractiveModeController {
         int interval = ConsoleInputHandler.getIntInput("Интервал (секунды): ", 1, 3600);
         continuousMonitoring = true;
         view.displayMessage("Мониторинг запущен. Нажмите Enter для остановки.");
+
         Thread monitorThread = new Thread(() -> {
             while (continuousMonitoring) {
                 view.displaySystemState(systemController.getAllSystems(), systemController.getCurrentFileName());
@@ -301,6 +326,7 @@ public class InteractiveModeController {
                 }
             }
         });
+
         monitorThread.start();
         view.waitForEnter();
         continuousMonitoring = false;
@@ -312,6 +338,7 @@ public class InteractiveModeController {
         systemController.setCSVLogInterval(interval);
         csvLogging = true;
         view.displayMessage("Логирование запущено. Нажмите Enter для остановки.");
+
         Thread loggingThread = new Thread(() -> {
             while (csvLogging) {
                 systemController.logAllSystemsState();
@@ -322,74 +349,76 @@ public class InteractiveModeController {
                 }
             }
         });
+
         loggingThread.start();
         view.waitForEnter();
         csvLogging = false;
         view.displayMessage("Логирование остановлено.");
     }
 
-    private void saveAllEventLogsToFile() {
-        if (systemController.getAllSystems().isEmpty()) {
-            view.displayMessage("Нет систем для сохранения логов.");
-            view.waitForEnter();
-            return;
-        }
-
-        String filename = ConsoleInputHandler.getStringInput("Введите имя файла для сохранения (например: all_event_logs.txt): ");
-        String description = ConsoleInputHandler.getStringInput("Введите общее описание для логов: ");
-
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filename, true))) {
-            writer.println("=== ОБЩИЙ ЖУРНАЛ СОБЫТИЙ СИСТЕМ БЕЗОПАСНОСТИ ===");
-            writer.println("Описание: " + description);
-            writer.println("Время экспорта: " + java.time.LocalDateTime.now());
-            writer.println("Количество устройств: " + systemController.getAllSystems().size());
-            writer.println("===============================================");
-            writer.println();
-
-            int savedCount = 0;
-            CSVLogger csvLogger = systemController.getCsvLogger();
-
-            for (SecuritySystem system : systemController.getAllSystems()) {
-                String deviceType = system.getClass().getSimpleName();
-                String deviceName = system.getSystemId() + " (" + system.getLocation() + ")";
-
-                writer.println("--- УСТРОЙСТВО: " + deviceName + " ---");
-                writer.println("Тип: " + deviceType);
-                writer.println("Режим безопасности: " + system.getSecurityMode());
-                writer.println("Охрана: " + (system.isArmed() ? "ВКЛ" : "ВЫКЛ"));
-                writer.println("Уровень батареи: " + system.getBatteryLevel() + "%");
-                writer.println("Сила сигнала: " + system.getSignalStrength() + "/5");
-                writer.println();
-                writer.println("События:");
-                writer.println("--------");
-
-                List<String> logs = csvLogger.getLogsBySystemId(system.getSystemId(), 100);
-                if (logs.isEmpty()) {
-                    writer.println("Журнал событий пуст");
-                } else {
-                    for (String log : logs) {
-                        String[] parts = log.split(",");
-                        if (parts.length >= 9) {
-                            writer.println("[" + parts[0] + "] " + parts[7] + " - " + parts[8]);
-                        }
-                    }
-                }
-
-                writer.println();
-                writer.println("----------------------------------------");
-                writer.println();
-                savedCount++;
-            }
-
-            writer.println("=== ЭКСПОРТ ЗАВЕРШЕН ===");
-            writer.println("Успешно сохранено: " + savedCount + " устройств");
-            writer.println("===============================================");
-
-            view.displayMessage("УСПЕШНО сохранены журналы событий " + savedCount + " устройств в файл: " + filename);
-        } catch (java.io.IOException e) {
-            view.displayError("ОШИБКА при сохранении логов в файл: " + e.getMessage());
-        }
-
-        view.waitForEnter();
-    }
+//    @Deprecated, но мне так жалко его удалять, пусть остается комментом
+//    private void saveAllEventLogsToFile() {
+//        if (systemController.getAllSystems().isEmpty()) {
+//            view.displayMessage("Нет систем для сохранения логов.");
+//            view.waitForEnter();
+//            return;
+//        }
+//
+//        String filename = ConsoleInputHandler.getStringInput("Введите имя файла для сохранения (например: all_event_logs.txt): ");
+//        String description = ConsoleInputHandler.getStringInput("Введите общее описание для логов: ");
+//
+//        try (PrintWriter writer = new PrintWriter(new FileWriter(filename, true))) {
+//            writer.println("=== ОБЩИЙ ЖУРНАЛ СОБЫТИЙ СИСТЕМ БЕЗОПАСНОСТИ ===");
+//            writer.println("Описание: " + description);
+//            writer.println("Время экспорта: " + java.time.LocalDateTime.now());
+//            writer.println("Количество устройств: " + systemController.getAllSystems().size());
+//            writer.println("===============================================");
+//            writer.println();
+//
+//            int savedCount = 0;
+//            CSVLogger csvLogger = systemController.getCsvLogger();
+//
+//            for (SecuritySystem system : systemController.getAllSystems()) {
+//                String deviceType = system.getClass().getSimpleName();
+//                String deviceName = system.getSystemId() + " (" + system.getLocation() + ")";
+//
+//                writer.println("--- УСТРОЙСТВО: " + deviceName + " ---");
+//                writer.println("Тип: " + deviceType);
+//                writer.println("Режим безопасности: " + system.getSecurityMode());
+//                writer.println("Охрана: " + (system.isArmed() ? "ВКЛ" : "ВЫКЛ"));
+//                writer.println("Уровень батареи: " + system.getBatteryLevel() + "%");
+//                writer.println("Сила сигнала: " + system.getSignalStrength() + "/5");
+//                writer.println();
+//                writer.println("События:");
+//                writer.println("--------");
+//
+//                List<String> logs = csvLogger.getLogsBySystemId(system.getSystemId(), 100);
+//                if (logs.isEmpty()) {
+//                    writer.println(config.getString("log.empty"));
+//                } else {
+//                    for (String log : logs) {
+//                        String[] parts = log.split(",");
+//                        if (parts.length >= 9) {
+//                            writer.println("[" + parts[0] + "] " + parts[7] + " - " + parts[8]);
+//                        }
+//                    }
+//                }
+//
+//                writer.println();
+//                writer.println("----------------------------------------");
+//                writer.println();
+//                savedCount++;
+//            }
+//
+//            writer.println("=== ЭКСПОРТ ЗАВЕРШЕН ===");
+//            writer.println("Успешно сохранено: " + savedCount + " устройств");
+//            writer.println("===============================================");
+//
+//            view.displayMessage("УСПЕШНО сохранены журналы событий " + savedCount + " устройств в файл: " + filename);
+//        } catch (java.io.IOException e) {
+//            view.displayError("ОШИБКА при сохранении логов в файл: " + e.getMessage());
+//        }
+//
+//        view.waitForEnter();
+//    }
 }
