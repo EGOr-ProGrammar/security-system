@@ -29,20 +29,51 @@ public class CSVLogger {
         }
     }
 
-    public void logSystemState(SecuritySystem system) {
+    public void logEvent(SecuritySystem system, EventType eventType, String additionalInfo) {
         if (writer != null) {
             String timestamp = LocalDateTime.now().toString();
+            String description = eventType.getDescription();
+            if (additionalInfo != null && !additionalInfo.isEmpty()) {
+                description += ": " + additionalInfo;
+            }
+
             String line = String.format("%s,%s,%s,%s,%s,%d,%d,%s,%s",
-                    timestamp, system.getSystemId(), system.getLocation(),
-                    system.getSecurityMode(), system.isArmed(),
-                    system.getBatteryLevel(), system.getSignalStrength(),
-                    EventType.STATE_UPDATE.name(), EventType.STATE_UPDATE.getDescription()
+                    timestamp,
+                    system.getSystemId(),
+                    system.getLocation(),
+                    system.getSecurityMode(),
+                    system.isArmed(),
+                    system.getBatteryLevel(),
+                    system.getSignalStrength(),
+                    eventType.name(),
+                    description
             );
             writer.println(line);
             writer.flush();
         }
     }
 
+    public void logEvent(SecuritySystem system, EventType eventType) {
+        logEvent(system, eventType, null);
+    }
+
+    public void logSystemEvent(EventType eventType, String additionalInfo) {
+        if (writer != null) {
+            String timestamp = LocalDateTime.now().toString();
+            String description = eventType.getDescription();
+            if (additionalInfo != null && !additionalInfo.isEmpty()) {
+                description += ": " + additionalInfo;
+            }
+
+            String line = String.format("%s,SYSTEM,,,,,,%s,%s",
+                    timestamp, eventType.name(), description
+            );
+            writer.println(line);
+            writer.flush();
+        }
+    }
+
+    @Deprecated
     public void logEvent(String systemId, EventType eventType, String additionalInfo) {
         if (writer != null) {
             String timestamp = LocalDateTime.now().toString();
@@ -59,8 +90,13 @@ public class CSVLogger {
         }
     }
 
+    @Deprecated
     public void logEvent(String systemId, EventType eventType) {
         logEvent(systemId, eventType, null);
+    }
+
+    public void logSystemState(SecuritySystem system) {
+        logEvent(system, EventType.STATE_UPDATE);
     }
 
     public List<String> getRecentLogs(int maxLines) {
@@ -72,7 +108,6 @@ public class CSVLogger {
                 logs.add(line);
             }
 
-            // Вернуть последние N строк
             int startIndex = Math.max(0, logs.size() - maxLines);
             return logs.subList(startIndex, logs.size());
         } catch (IOException e) {
@@ -92,7 +127,6 @@ public class CSVLogger {
                 }
             }
 
-            // Вернуть последние N строк
             int startIndex = Math.max(0, logs.size() - maxLines);
             return logs.subList(startIndex, logs.size());
         } catch (IOException e) {
