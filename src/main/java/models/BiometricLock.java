@@ -23,12 +23,11 @@ public class BiometricLock extends SecuritySystem {
 
     @Override
     public boolean performSelfTest() {
-        logEvent("Запуск самодиагностики биометрического замка");
         boolean sensorTest = random.nextDouble() > 0.1;
         boolean memoryTest = random.nextDouble() > 0.05;
         boolean motorTest = random.nextDouble() > 0.15;
         boolean result = sensorTest && memoryTest && motorTest;
-        logEvent("Самодиагностика замка: " + (result ? "УСПЕШНО" : "ОШИБКА"));
+
         if (csvLogger != null) {
             csvLogger.logEvent(systemId, result ? EventType.SELF_TEST_SUCCESS : EventType.SELF_TEST_FAILED);
         }
@@ -57,7 +56,6 @@ public class BiometricLock extends SecuritySystem {
 
     @Override
     public void calibrateSensors() {
-        logEvent("Калибровка биометрических сенсоров");
         failedAttempts = 0;
         if (csvLogger != null) {
             csvLogger.logEvent(systemId, EventType.CALIBRATION_COMPLETE, "Failed attempts reset");
@@ -67,7 +65,6 @@ public class BiometricLock extends SecuritySystem {
     @Override
     public boolean checkConnectivity() {
         boolean connected = random.nextDouble() > 0.15;
-        logEvent("Проверка связи с базой данных: " + (connected ? "ОК" : "ОШИБКА"));
         if (csvLogger != null) {
             csvLogger.logEvent(systemId, EventType.CONNECTIVITY_CHECK, connected ? "OK" : "FAILED");
         }
@@ -76,7 +73,6 @@ public class BiometricLock extends SecuritySystem {
 
     public boolean authenticateUser(String fingerprintId) {
         if (authorizedUsers.containsKey(fingerprintId)) {
-            logEvent("Доступ разрешен для: " + authorizedUsers.get(fingerprintId));
             failedAttempts = 0;
             if (csvLogger != null) {
                 csvLogger.logEvent(systemId, EventType.AUTH_SUCCESS, authorizedUsers.get(fingerprintId));
@@ -84,7 +80,6 @@ public class BiometricLock extends SecuritySystem {
             return true;
         } else {
             failedAttempts++;
-            logEvent("Доступ запрещен. Неудачных попыток: " + failedAttempts);
             if (csvLogger != null) {
                 csvLogger.logEvent(systemId, EventType.AUTH_FAILED, "Attempt " + failedAttempts);
             }
@@ -97,7 +92,6 @@ public class BiometricLock extends SecuritySystem {
 
     public void addUser(String fingerprintId, String userName) {
         authorizedUsers.put(fingerprintId, userName);
-        logEvent("Добавлен пользователь: " + userName);
         if (csvLogger != null) {
             csvLogger.logEvent(systemId, EventType.USER_ADDED, userName);
         }
@@ -105,17 +99,13 @@ public class BiometricLock extends SecuritySystem {
 
     public void removeUser(String fingerprintId) {
         String userName = authorizedUsers.remove(fingerprintId);
-        if (userName != null) {
-            logEvent("Удален пользователь: " + userName);
-            if (csvLogger != null) {
-                csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "User removed: " + userName);
-            }
+        if (userName != null && csvLogger != null) {
+            csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "User removed: " + userName);
         }
     }
 
     public void lockDoor() {
         lockStatus = "Заблокирован";
-        logEvent("Дверь заблокирована");
         if (csvLogger != null) {
             csvLogger.logEvent(systemId, EventType.DOOR_LOCKED);
         }
@@ -123,7 +113,6 @@ public class BiometricLock extends SecuritySystem {
 
     public void unlockDoor() {
         lockStatus = "Открыт";
-        logEvent("Дверь открыта");
         if (csvLogger != null) {
             csvLogger.logEvent(systemId, EventType.DOOR_UNLOCKED);
         }
@@ -131,7 +120,6 @@ public class BiometricLock extends SecuritySystem {
 
     public void toggleFingerprintScanner() {
         fingerprintEnabled = !fingerprintEnabled;
-        logEvent("Сканер отпечатков: " + (fingerprintEnabled ? "ВКЛ" : "ВЫКЛ"));
         if (csvLogger != null) {
             csvLogger.logEvent(systemId, EventType.SENSOR_TOGGLED, "Fingerprint: " + fingerprintEnabled);
         }
@@ -139,13 +127,11 @@ public class BiometricLock extends SecuritySystem {
 
     public void setAutoLockDelay(int seconds) {
         autoLockDelay = seconds;
-        logEvent("Задержка автоблокировки установлена: " + seconds + " сек");
         if (csvLogger != null) {
             csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "Auto-lock delay: " + seconds);
         }
     }
 
-    // Геттеры
     public int getFailedAttempts() { return failedAttempts; }
     public boolean isFingerprintEnabled() { return fingerprintEnabled; }
     public boolean isFaceRecognitionEnabled() { return faceRecognitionEnabled; }
@@ -153,26 +139,33 @@ public class BiometricLock extends SecuritySystem {
     public int getAutoLockDelay() { return autoLockDelay; }
     public Map<String, String> getAuthorizedUsers() { return new HashMap<>(authorizedUsers); }
 
-    // Сеттеры для TextFileParser
     public void setFailedAttempts(int attempts) {
         this.failedAttempts = Math.max(0, attempts);
-        logEvent("Счётчик неудачных попыток установлен: " + attempts);
+        if (csvLogger != null) {
+            csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "Failed attempts: " + attempts);
+        }
     }
 
     public void setFingerprintEnabled(boolean enabled) {
         this.fingerprintEnabled = enabled;
-        logEvent("Сканер отпечатков: " + (enabled ? "ВКЛ" : "ВЫКЛ"));
+        if (csvLogger != null) {
+            csvLogger.logEvent(systemId, EventType.SENSOR_TOGGLED, "Fingerprint: " + enabled);
+        }
     }
 
     public void setFaceRecognitionEnabled(boolean enabled) {
         this.faceRecognitionEnabled = enabled;
-        logEvent("Распознавание лиц: " + (enabled ? "ВКЛ" : "ВЫКЛ"));
+        if (csvLogger != null) {
+            csvLogger.logEvent(systemId, EventType.SENSOR_TOGGLED, "Face recognition: " + enabled);
+        }
     }
 
     public void setLockStatus(String status) {
         if (status != null && !status.isBlank()) {
             this.lockStatus = status;
-            logEvent("Статус замка установлен: " + status);
+            if (csvLogger != null) {
+                csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "Lock status: " + status);
+            }
         }
     }
 }
