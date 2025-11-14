@@ -83,8 +83,25 @@ public abstract class SecuritySystem {
     }
 
     public void updateSensorStatus() {
-        batteryLevel = Math.max(0, Math.min(100, batteryLevel + random.nextInt(8) - 5));
-        signalStrength = Math.max(1, Math.min(5, signalStrength + random.nextInt(3) - 1));
+        int batteryChange = random.nextInt(8) - 5;
+        batteryLevel = batteryLevel + batteryChange;
+
+        if (batteryLevel > 100) {
+            batteryLevel = 100;
+        }
+        if (batteryLevel < 0) {
+            batteryLevel = 0;
+        }
+
+        int signalChange = random.nextInt(3) - 1;
+        signalStrength = signalStrength + signalChange;
+
+        if (signalStrength > 5) {
+            signalStrength = 5;
+        }
+        if (signalStrength < 1) {
+            signalStrength = 1;
+        }
     }
 
     // Геттеры
