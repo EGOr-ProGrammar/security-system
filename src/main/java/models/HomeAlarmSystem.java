@@ -57,7 +57,16 @@ public class HomeAlarmSystem extends SecuritySystem {
 
     @Override
     public void calibrateSensors() {
-        sensitivityLevel = Math.max(1, Math.min(5, sensitivityLevel + random.nextInt(3) - 1));
+        int newSensitivity = sensitivityLevel + random.nextInt(3) - 1;
+
+        if (newSensitivity < 1) {
+            newSensitivity = 1;
+        }
+        if (newSensitivity > 5) {
+            newSensitivity = 5;
+        }
+
+        sensitivityLevel = newSensitivity;
         if (csvLogger != null) {
             csvLogger.logEvent(this, EventType.CALIBRATION_COMPLETE, "Sensitivity: " + sensitivityLevel);
         }
