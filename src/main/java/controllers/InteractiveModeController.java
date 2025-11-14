@@ -141,14 +141,17 @@ public class InteractiveModeController {
                 view.displayMessage("Режим безопасности установлен");
             }
             case 4 -> {
-                String alarm = system.simulateEmergency();
-                view.displayMessage(alarm);
+                EmergencyEvent emergencyEvent = system.simulateEmergency();
+                view.displayEmergencyEvent(emergencyEvent);
             }
             case 5 -> {
                 boolean testResult = system.performSelfTest();
                 view.displayMessage("Самодиагностика: " + (testResult ? "УСПЕШНО" : "ОШИБКА"));
             }
-            case 6 -> view.displayMessage(system.getStatusReport());
+            case 6 -> {
+                SystemStatusReport report = system.getStatusReport();
+                view.displayStatusReport(report);
+            }
             case 7 -> {
                 system.calibrateSensors();
                 view.displayMessage("Сенсоры откалиброваны");

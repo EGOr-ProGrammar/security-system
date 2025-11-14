@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SecuritySystemController {
+
     private final List<SecuritySystem> systems;
     private final TextFileParser textFileParser;
     private final CSVLogger csvLogger;
@@ -32,7 +33,7 @@ public class SecuritySystemController {
     public boolean removeSystem(int index) {
         if (index >= 0 && index < systems.size()) {
             SecuritySystem removed = systems.remove(index);
-            csvLogger.logEvent(removed, EventType.SYSTEM_REMOVED); 
+            csvLogger.logEvent(removed, EventType.SYSTEM_REMOVED);
             return true;
         }
         return false;
@@ -50,21 +51,21 @@ public class SecuritySystemController {
         try {
             if (!append) {
                 systems.clear();
-                csvLogger.logSystemEvent(EventType.INFO, "Очистка существующих систем"); 
+                csvLogger.logSystemEvent(EventType.INFO, "Очистка существующих систем");
             }
 
             List<SecuritySystem> loadedSystems = textFileParser.readFromFile(fileName);
             for (SecuritySystem system : loadedSystems) {
                 system.setCsvLogger(csvLogger);
                 systems.add(system);
-                csvLogger.logEvent(system, EventType.SYSTEM_LOADED, "Из файла: " + fileName); 
+                csvLogger.logEvent(system, EventType.SYSTEM_LOADED, "Из файла: " + fileName);
             }
 
             this.currentFileName = fileName;
-            csvLogger.logSystemEvent(EventType.INFO, "Загружено " + loadedSystems.size() + " систем из " + fileName); 
+            csvLogger.logSystemEvent(EventType.INFO, "Загружено " + loadedSystems.size() + " систем из " + fileName);
             return true;
         } catch (Exception e) {
-            csvLogger.logSystemEvent(EventType.ERROR, "Ошибка загрузки из " + fileName + ": " + e.getMessage()); 
+            csvLogger.logSystemEvent(EventType.ERROR, "Ошибка загрузки из " + fileName + ": " + e.getMessage());
             return false;
         }
     }
@@ -72,7 +73,7 @@ public class SecuritySystemController {
     public void setFileName(String fileName) {
         String oldFile = this.currentFileName;
         this.currentFileName = fileName;
-        csvLogger.logSystemEvent(EventType.CONFIG_CHANGED, "Файл изменен с " + oldFile + " на " + fileName); 
+        csvLogger.logSystemEvent(EventType.CONFIG_CHANGED, "Файл изменен с " + oldFile + " на " + fileName);
     }
 
     public String getCurrentFileName() {
@@ -85,7 +86,7 @@ public class SecuritySystemController {
             system.armSystem();
             return true;
         }
-        csvLogger.logSystemEvent(EventType.WARNING, "Постановка на охрану не удалась: неверный индекс " + index); 
+        csvLogger.logSystemEvent(EventType.WARNING, "Постановка на охрану не удалась: неверный индекс " + index);
         return false;
     }
 
@@ -95,7 +96,7 @@ public class SecuritySystemController {
             system.disarmSystem();
             return true;
         }
-        csvLogger.logSystemEvent(EventType.WARNING, "Снятие с охраны не удалось: неверный индекс " + index); 
+        csvLogger.logSystemEvent(EventType.WARNING, "Снятие с охраны не удалось: неверный индекс " + index);
         return false;
     }
 
@@ -106,11 +107,11 @@ public class SecuritySystemController {
                 system.setSecurityMode(mode);
                 return true;
             } catch (IllegalArgumentException e) {
-                csvLogger.logEvent(system, EventType.ERROR, "Недопустимый режим: " + mode); 
+                csvLogger.logEvent(system, EventType.ERROR, "Недопустимый режим: " + mode);
                 return false;
             }
         }
-        csvLogger.logSystemEvent(EventType.WARNING, "Изменение режима не удалось: неверный индекс " + index); 
+        csvLogger.logSystemEvent(EventType.WARNING, "Изменение режима не удалось: неверный индекс " + index);
         return false;
     }
 
@@ -119,26 +120,26 @@ public class SecuritySystemController {
         if (system != null) {
             return system.performSelfTest();
         }
-        csvLogger.logSystemEvent(EventType.WARNING, "Самодиагностика не удалась: неверный индекс " + index); 
+        csvLogger.logSystemEvent(EventType.WARNING, "Самодиагностика не удалась: неверный индекс " + index);
         return false;
     }
 
-    public String simulateEmergency(int index) {
+    public EmergencyEvent simulateEmergency(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
             return system.simulateEmergency();
         }
-        csvLogger.logSystemEvent(EventType.WARNING, "Симуляция аварии не удалась: неверный индекс " + index); 
-        return "Ошибка: система не найдена";
+        csvLogger.logSystemEvent(EventType.WARNING, "Симуляция аварии не удалась: неверный индекс " + index);
+        return null;
     }
 
-    public String getStatusReport(int index) {
+    public SystemStatusReport getStatusReport(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
-            csvLogger.logEvent(system, EventType.INFO, "Запрошен статусный отчет"); 
+            csvLogger.logEvent(system, EventType.INFO, "Запрошен статусный отчет");
             return system.getStatusReport();
         }
-        return "Ошибка: система не найдена";
+        return null;
     }
 
     public boolean calibrateSensors(int index) {
@@ -147,7 +148,7 @@ public class SecuritySystemController {
             system.calibrateSensors();
             return true;
         }
-        csvLogger.logSystemEvent(EventType.WARNING, "Калибровка не удалась: неверный индекс " + index); 
+        csvLogger.logSystemEvent(EventType.WARNING, "Калибровка не удалась: неверный индекс " + index);
         return false;
     }
 
@@ -156,12 +157,12 @@ public class SecuritySystemController {
         if (system != null) {
             return system.checkConnectivity();
         }
-        csvLogger.logSystemEvent(EventType.WARNING, "Проверка подключения не удалась: неверный индекс " + index); 
+        csvLogger.logSystemEvent(EventType.WARNING, "Проверка подключения не удалась: неверный индекс " + index);
         return false;
     }
 
     public void logAllSystemsState() {
-        csvLogger.logSystemEvent(EventType.INFO, "Логирование состояния всех систем (" + systems.size() + " всего)"); 
+        csvLogger.logSystemEvent(EventType.INFO, "Логирование состояния всех систем (" + systems.size() + " всего)");
         for (SecuritySystem system : systems) {
             csvLogger.logSystemState(system);
         }
@@ -169,7 +170,7 @@ public class SecuritySystemController {
 
     public void setCSVLogInterval(int seconds) {
         csvLogger.setLogInterval(seconds);
-        csvLogger.logSystemEvent(EventType.CONFIG_CHANGED, "Интервал CSV логирования установлен на " + seconds + " секунд"); 
+        csvLogger.logSystemEvent(EventType.CONFIG_CHANGED, "Интервал CSV логирования установлен на " + seconds + " секунд");
     }
 
     public int getSystemCount() {
@@ -185,7 +186,7 @@ public class SecuritySystemController {
     }
 
     public void close() {
-        csvLogger.logSystemEvent(EventType.INFO, "Закрытие SecuritySystemController с " + systems.size() + " системами"); 
+        csvLogger.logSystemEvent(EventType.INFO, "Закрытие SecuritySystemController с " + systems.size() + " системами");
         csvLogger.close();
     }
 }
