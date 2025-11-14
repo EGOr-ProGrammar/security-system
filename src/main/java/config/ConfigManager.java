@@ -1,7 +1,9 @@
-package views;
+package config;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 /**
@@ -32,11 +34,11 @@ public class ConfigManager {
     private void loadProperties() {
         try (InputStream input = getClass().getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             if (input == null) {
-                System.err.println("Не удалось найти " + CONFIG_FILE + ", используются значения по умолчанию");
+                System.err.println("Не удалось найти " + CONFIG_FILE + " в classpath, используются значения по умолчанию");
                 loadDefaults();
                 return;
             }
-            properties.load(input);
+            properties.load(new InputStreamReader(input, StandardCharsets.UTF_8));
         } catch (IOException e) {
             System.err.println("Ошибка загрузки конфигурации: " + e.getMessage());
             loadDefaults();
