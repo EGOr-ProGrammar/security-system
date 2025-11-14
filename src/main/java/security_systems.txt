@@ -1,0 +1,2 @@
+[HomeAlarmSystem]id:home1 location:Гостиная securitymode:Дома isarmed:true batterylevel:85 signalstrength:4 doorsensorsactive:true windowsensorsactive:true motionsensorsactive:true sensitivitylevel:3 silentmode:false alarmsound:Сирена
+[BiometricLock]id:lock1 location:Входная дверь securitymode:Отсутствие isarmed:true batterylevel:90 signalstrength:5 failedattempts:0 fingerprintenabled:true facerecognitionenabled:false lockstatus:Заблокирован autolockdelay:30

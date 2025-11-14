@@ -1,0 +1,31 @@
+# Справка
+java -jar security-system.jar -h
+java -jar security-system.jar --help
+
+# Загрузка из файла и вывод состояния
+java -jar security-system.jar -f security_systems.txt
+
+# Разовый вывод состояния
+java -jar security-system.jar -s
+java -jar security-system.jar --state
+
+# Непрерывный мониторинг с интервалом 5 секунд
+java -jar security-system.jar -c 5
+java -jar security-system.jar --continuous 5
+
+# Логирование в CSV каждые 3 секунды
+java -jar security-system.jar -l 3
+java -jar security-system.jar --log 3
+
+# Интерактивный режим
+java -jar security-system.jar -i
+java -jar security-system.jar --interactive
+
+# Смена файла и вывод состояния
+java -jar security-system.jar -r new_systems.txt -s
+
+# Загрузить файл и запустить мониторинг
+java -jar security-system.jar -f systems.txt -c 5
+
+# Без аргументов — интерактивный режим по умолчанию
+java -jar security-system.jar
