@@ -67,7 +67,7 @@ public class CarAlarmSystem extends SecuritySystem {
     public boolean checkConnectivity() {
         boolean connected = random.nextDouble() > 0.25;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.CONNECTIVITY_CHECK, connected ? "OK" : "FAILED");
+            csvLogger.logEvent(this, EventType.CONNECTIVITY_CHECK, connected ? "OK" : "ОШИБКА");
         }
         return connected;
     }
@@ -82,14 +82,14 @@ public class CarAlarmSystem extends SecuritySystem {
     public void toggleShockSensor() {
         shockSensorActive = !shockSensorActive;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Shock sensor: " + shockSensorActive);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик удара: " + shockSensorActive);
         }
     }
 
     public void toggleTiltSensor() {
         tiltSensorActive = !tiltSensorActive;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Tilt sensor: " + tiltSensorActive);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик наклона: " + tiltSensorActive);
         }
     }
 
@@ -97,7 +97,7 @@ public class CarAlarmSystem extends SecuritySystem {
         if (volume.equals("Тихая") || volume.equals("Средняя") || volume.equals("Громкая")) {
             alarmVolume = volume;
             if (csvLogger != null) {
-                csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Volume: " + volume);
+                csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Громкость сигнала: " + volume);
             }
         }
     }
@@ -114,7 +114,7 @@ public class CarAlarmSystem extends SecuritySystem {
     public void toggleRemoteStart() {
         remoteStartEnabled = !remoteStartEnabled;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Remote start: " + remoteStartEnabled);
+            csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Дистанционный запуск: " + remoteStartEnabled);
         }
     }
 
@@ -128,28 +128,28 @@ public class CarAlarmSystem extends SecuritySystem {
     public void setShockSensorActive(boolean active) {
         this.shockSensorActive = active;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Shock sensor: " + active);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик удара: " + active);
         }
     }
 
     public void setTiltSensorActive(boolean active) {
         this.tiltSensorActive = active;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Tilt sensor: " + active);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик наклона: " + active);
         }
     }
 
     public void setGlassBreakSensorActive(boolean active) {
         this.glassBreakSensorActive = active;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Glass break sensor: " + active);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик разбития стекла: " + active);
         }
     }
 
     public void setRemoteStartEnabled(boolean enabled) {
         this.remoteStartEnabled = enabled;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Remote start: " + enabled);
+            csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Дистанционный запуск: " + enabled);
         }
     }
 
@@ -157,7 +157,7 @@ public class CarAlarmSystem extends SecuritySystem {
         if (duration > 0) {
             this.panicModeDuration = duration;
             if (csvLogger != null) {
-                csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Panic duration: " + duration);
+                csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Длительность паники: " + duration);
             }
         }
     }
