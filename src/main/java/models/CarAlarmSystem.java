@@ -1,9 +1,7 @@
 package models;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class CarAlarmSystem extends SecuritySystem {
+
     private boolean shockSensorActive;
     private boolean tiltSensorActive;
     private boolean glassBreakSensorActive;
@@ -32,32 +30,51 @@ public class CarAlarmSystem extends SecuritySystem {
         if (csvLogger != null) {
             csvLogger.logEvent(this, result ? EventType.SELF_TEST_SUCCESS : EventType.SELF_TEST_FAILED);
         }
+
         return result;
     }
 
     @Override
-    public String simulateEmergency() {
-        String[] emergencies = {"Удар по автомобилю", "Наклон автомобиля", "Разбитие стекла", "Обнаружение движения"};
-        String emergency = emergencies[random.nextInt(emergencies.length)];
-        return sendAlarm(emergency);
+    public EmergencyEvent simulateEmergency() {
+        String[] emergencyTypes = {"Удар по автомобилю", "Наклон транспорта", "Разбито стекло"};
+        String selectedEmergency = emergencyTypes[random.nextInt(emergencyTypes.length)];
+
+        if (csvLogger != null) {
+            csvLogger.logEvent(this, EventType.EMERGENCY_SIMULATED);
+        }
+
+        return new EmergencyEvent(
+                systemId,
+                "CarAlarmSystem",
+                selectedEmergency,
+                "Тревога в автомобильной сигнализации: " + selectedEmergency,
+                true
+        );
     }
 
     @Override
-    public String getStatusReport() {
-        Map<String, Object> report = new HashMap<>();
-        report.put("Датчик удара", shockSensorActive ? "Активен" : "Неактивен");
-        report.put("Датчик наклона", tiltSensorActive ? "Активен" : "Неактивен");
-        report.put("Датчик разбития стекла", glassBreakSensorActive ? "Активен" : "Неактивен");
-        report.put("Дистанционный запуск", remoteStartEnabled ? "ВКЛ" : "ВЫКЛ");
-        report.put("Громкость сигнала", alarmVolume);
-        report.put("Длительность паники", panicModeDuration + " сек");
-        report.put("Уровень батареи", batteryLevel + "%");
-        report.put("Сила сигнала", signalStrength + "/5");
-        return "Отчет автомобильной сигнализации:\n" + report.toString();
+    public SystemStatusReport getStatusReport() {
+        return new CarAlarmStatusReport(
+                systemId,
+                location,
+                securityMode,
+                isArmed,
+                batteryLevel,
+                signalStrength,
+                shockSensorActive,
+                tiltSensorActive,
+                glassBreakSensorActive,
+                remoteStartEnabled,
+                alarmVolume,
+                panicModeDuration
+        );
     }
 
     @Override
     public void calibrateSensors() {
+        this.shockSensorActive = true;
+        this.tiltSensorActive = true;
+        this.glassBreakSensorActive = true;
         if (csvLogger != null) {
             csvLogger.logEvent(this, EventType.CALIBRATION_COMPLETE);
         }
@@ -67,89 +84,104 @@ public class CarAlarmSystem extends SecuritySystem {
     public boolean checkConnectivity() {
         boolean connected = random.nextDouble() > 0.25;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.CONNECTIVITY_CHECK, connected ? "OK" : "ОШИБКА");
+            csvLogger.logEvent(this, EventType.CONNECTIVITY_CHECK);
         }
         return connected;
     }
 
     public void activatePanicMode() {
-        sendAlarm("Режим паники активирован");
         if (csvLogger != null) {
             csvLogger.logEvent(this, EventType.PANIC_MODE_ACTIVATED);
         }
     }
 
     public void toggleShockSensor() {
-        shockSensorActive = !shockSensorActive;
+        this.shockSensorActive = !this.shockSensorActive;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик удара: " + shockSensorActive);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED);
         }
     }
 
     public void toggleTiltSensor() {
-        tiltSensorActive = !tiltSensorActive;
+        this.tiltSensorActive = !this.tiltSensorActive;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик наклона: " + tiltSensorActive);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED);
         }
     }
 
     public void setAlarmVolume(String volume) {
-        if (volume.equals("Тихая") || volume.equals("Средняя") || volume.equals("Громкая")) {
-            alarmVolume = volume;
+        if (volume.equals("Низкая") || volume.equals("Средняя") || volume.equals("Высокая")) {
+            this.alarmVolume = volume;
             if (csvLogger != null) {
-                csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Громкость сигнала: " + volume);
+                csvLogger.logEvent(this, EventType.CONFIG_CHANGED);
             }
         }
     }
 
     public void simulateImpact() {
-        if (isArmed && shockSensorActive) {
-            sendAlarm("Обнаружен удар по автомобилю");
-            if (csvLogger != null) {
-                csvLogger.logEvent(this, EventType.IMPACT_DETECTED);
-            }
+        if (csvLogger != null) {
+            csvLogger.logEvent(this, EventType.IMPACT_DETECTED);
         }
     }
 
     public void toggleRemoteStart() {
-        remoteStartEnabled = !remoteStartEnabled;
+        this.remoteStartEnabled = !this.remoteStartEnabled;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Дистанционный запуск: " + remoteStartEnabled);
+            csvLogger.logEvent(this, EventType.CONFIG_CHANGED);
         }
     }
 
-    public boolean isShockSensorActive() { return shockSensorActive; }
-    public boolean isTiltSensorActive() { return tiltSensorActive; }
-    public boolean isGlassBreakSensorActive() { return glassBreakSensorActive; }
-    public boolean isRemoteStartEnabled() { return remoteStartEnabled; }
-    public String getAlarmVolume() { return alarmVolume; }
-    public int getPanicModeDuration() { return panicModeDuration; }
+    // Геттеры
+    public boolean isShockSensorActive() {
+        return shockSensorActive;
+    }
 
+    public boolean isTiltSensorActive() {
+        return tiltSensorActive;
+    }
+
+    public boolean isGlassBreakSensorActive() {
+        return glassBreakSensorActive;
+    }
+
+    public boolean isRemoteStartEnabled() {
+        return remoteStartEnabled;
+    }
+
+    public String getAlarmVolume() {
+        return alarmVolume;
+    }
+
+    public int getPanicModeDuration() {
+        return panicModeDuration;
+    }
+
+    // Сеттеры
     public void setShockSensorActive(boolean active) {
         this.shockSensorActive = active;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик удара: " + active);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED);
         }
     }
 
     public void setTiltSensorActive(boolean active) {
         this.tiltSensorActive = active;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик наклона: " + active);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED);
         }
     }
 
     public void setGlassBreakSensorActive(boolean active) {
         this.glassBreakSensorActive = active;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED, "Датчик разбития стекла: " + active);
+            csvLogger.logEvent(this, EventType.SENSOR_TOGGLED);
         }
     }
 
     public void setRemoteStartEnabled(boolean enabled) {
         this.remoteStartEnabled = enabled;
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Дистанционный запуск: " + enabled);
+            csvLogger.logEvent(this, EventType.CONFIG_CHANGED);
         }
     }
 
@@ -157,7 +189,7 @@ public class CarAlarmSystem extends SecuritySystem {
         if (duration > 0) {
             this.panicModeDuration = duration;
             if (csvLogger != null) {
-                csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Длительность паники: " + duration);
+                csvLogger.logEvent(this, EventType.CONFIG_CHANGED);
             }
         }
     }

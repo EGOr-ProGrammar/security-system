@@ -3,6 +3,7 @@ package models;
 import java.util.Random;
 
 public abstract class SecuritySystem {
+
     protected String systemId;
     protected String location;
     protected String securityMode;
@@ -27,16 +28,20 @@ public abstract class SecuritySystem {
     }
 
     public abstract boolean performSelfTest();
-    public abstract String simulateEmergency();
-    public abstract String getStatusReport();
+
+    public abstract EmergencyEvent simulateEmergency();
+
+    public abstract SystemStatusReport getStatusReport();
+
     public abstract void calibrateSensors();
+
     public abstract boolean checkConnectivity();
 
     public void setSecurityMode(String mode) {
         if (mode.equals("Отключено") || mode.equals("Дома") || mode.equals("Отсутствие")) {
             this.securityMode = mode;
             if (csvLogger != null) {
-                csvLogger.logEvent(this, EventType.MODE_CHANGED, mode); // Передаем this вместо systemId
+                csvLogger.logEvent(this, EventType.MODE_CHANGED, mode);
             }
         } else {
             throw new IllegalArgumentException("Недопустимый режим безопасности");
@@ -47,7 +52,7 @@ public abstract class SecuritySystem {
         if (!isArmed) {
             isArmed = true;
             if (csvLogger != null) {
-                csvLogger.logEvent(this, EventType.SYSTEM_ARMED); // Передаем this
+                csvLogger.logEvent(this, EventType.SYSTEM_ARMED);
             }
         }
     }
@@ -56,32 +61,55 @@ public abstract class SecuritySystem {
         if (isArmed) {
             isArmed = false;
             if (csvLogger != null) {
-                csvLogger.logEvent(this, EventType.SYSTEM_DISARMED); // Передаем this
+                csvLogger.logEvent(this, EventType.SYSTEM_DISARMED);
             }
         }
     }
 
-    public String sendAlarm(String alarmType) {
-        String alarmMessage = "ТРЕВОГА: " + alarmType + " - " + java.time.LocalDateTime.now();
+    public EmergencyEvent sendAlarm(String alarmType) {
         if (csvLogger != null) {
-            csvLogger.logEvent(this, EventType.EMERGENCY_SIMULATED, alarmType); // Передаем this
+            csvLogger.logEvent(this, EventType.EMERGENCY_SIMULATED, alarmType);
         }
-        return alarmMessage;
+        return new EmergencyEvent(
+                systemId,
+                this.getClass().getSimpleName(),
+                alarmType,
+                "Тревога: " + alarmType,
+                true
+        );
     }
-
 
     public void updateSensorStatus() {
         batteryLevel = Math.max(0, Math.min(100, batteryLevel + random.nextInt(8) - 5));
         signalStrength = Math.max(1, Math.min(5, signalStrength + random.nextInt(3) - 1));
     }
 
-    public String getSystemId() { return systemId; }
-    public String getLocation() { return location; }
-    public String getSecurityMode() { return securityMode; }
-    public boolean isArmed() { return isArmed; }
-    public int getBatteryLevel() { return batteryLevel; }
-    public int getSignalStrength() { return signalStrength; }
+    // Геттеры
+    public String getSystemId() {
+        return systemId;
+    }
 
+    public String getLocation() {
+        return location;
+    }
+
+    public String getSecurityMode() {
+        return securityMode;
+    }
+
+    public boolean isArmed() {
+        return isArmed;
+    }
+
+    public int getBatteryLevel() {
+        return batteryLevel;
+    }
+
+    public int getSignalStrength() {
+        return signalStrength;
+    }
+
+    // Сеттеры
     public void setLocation(String newLocation) {
         this.location = (newLocation != null) && (!newLocation.isBlank()) ? newLocation : this.location;
         if (csvLogger != null) {
