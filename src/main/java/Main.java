@@ -1,3 +1,4 @@
+import config.ConfigManager;
 import controllers.InteractiveModeController;
 import controllers.SecuritySystemController;
 import controllers.CommandLineController;
@@ -7,8 +8,9 @@ import views.ConsoleView;
 
 public class Main {
     public static void main(String[] args) {
-        String defaultFile = "D:\\docs\\вуз\\3 курс\\java\\lab5\\src\\main\\java\\security_systems.txt";
+        ConfigManager config = ConfigManager.getInstance();
 
+        String defaultFile = config.getString("file.default.path");
         TextFileParser textFileParser = new TextFileParser();
         CSVLogger csvLogger = new CSVLogger();
         ConsoleView view = new ConsoleView();
@@ -18,19 +20,12 @@ public class Main {
         if (args.length > 0) {
             CommandLineController cmdController = new CommandLineController(systemController, view);
             boolean exitAfterProcessing = cmdController.processArgs(args);
-
             if (exitAfterProcessing) {
-                // Команда выполнена, выход из программы
                 return;
             }
         }
 
-        // Если processArgs вернул false, запускаем интерактивный режим
-        // Интерактивный режим по умолчанию или по флагу -i
-        InteractiveModeController interactiveController = new InteractiveModeController(
-                systemController,
-                view
-        );
+        InteractiveModeController interactiveController = new InteractiveModeController(systemController, view);
         interactiveController.run();
     }
 }
