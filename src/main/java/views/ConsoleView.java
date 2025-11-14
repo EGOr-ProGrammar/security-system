@@ -1,7 +1,6 @@
 package views;
 
-import models.CSVLogger;
-import models.SecuritySystem;
+import models.*;
 
 import java.util.List;
 
@@ -9,9 +8,9 @@ public class ConsoleView {
 
     public void displayHelp() {
         System.out.println("""
-            Использование: java -jar security-system.jar [ключи]
-            Ключи: -h, --help, -f, --file, -s, --state, -c, --continuous, -l, --log
-            """);
+        Использование: java -jar security-system.jar [ключи]
+        Ключи: -h, --help, -f, --file, -s, --state, -c, --continuous, -l, --log
+        """);
     }
 
     public void displaySystemState(List<SecuritySystem> systems, String fileName) {
@@ -23,7 +22,7 @@ public class ConsoleView {
         }
 
         for (int i = 0; i < systems.size(); i++) {
-            System.out.printf("%d. %s\n", i + 1, systems.get(i));
+            System.out.printf("%d. %s%n", i + 1, systems.get(i));
         }
     }
 
@@ -99,11 +98,9 @@ public class ConsoleView {
         System.out.println("2. Изменить файл");
     }
 
-    // Метод для отображения логов через CSVLogger
     public void displayEventLog(CSVLogger csvLogger, String systemId) {
         System.out.println("\n=== ЖУРНАЛ СОБЫТИЙ СИСТЕМЫ: " + systemId + " ===");
         List<String> logs = csvLogger.getLogsBySystemId(systemId, 50);
-
         if (logs.isEmpty()) {
             System.out.println("Журнал событий пуст");
             return;
@@ -112,12 +109,11 @@ public class ConsoleView {
         for (String log : logs) {
             String[] parts = log.split(",");
             if (parts.length >= 9) {
-                System.out.printf("[%s] %s - %s\n", parts[0], parts[7], parts[8]);
+                System.out.printf("[%s] %s - %s%n", parts[0], parts[7], parts[8]);
             }
         }
     }
 
-    // Перегрузка для совместимости со старым кодом (временно)
     public void displayEventLog(List<String> eventLog) {
         if (eventLog.isEmpty()) {
             displayMessage("Журнал событий пуст");
@@ -130,7 +126,6 @@ public class ConsoleView {
     public void displayAllLogs(CSVLogger csvLogger) {
         System.out.println("\n=== ВСЕ ЛОГИ СИСТЕМЫ ===");
         List<String> logs = csvLogger.getRecentLogs(100);
-
         if (logs.isEmpty()) {
             System.out.println("Логи отсутствуют.");
             return;
@@ -139,14 +134,82 @@ public class ConsoleView {
         for (String log : logs) {
             String[] parts = log.split(",");
             if (parts.length >= 9) {
-                System.out.printf("[%s] %s - %s - %s\n", parts[0], parts[1], parts[7], parts[8]);
+                System.out.printf("[%s] %s - %s - %s%n", parts[0], parts[1], parts[7], parts[8]);
             }
         }
     }
 
-     public void waitForEnter() {
-         ConsoleInputHandler.waitForEnter();
-     }
+    public void displayEmergencyEvent(EmergencyEvent event) {
+        if (event == null) {
+            displayError("Событие тревоги не найдено");
+            return;
+        }
+
+        System.out.println("\n=== СОБЫТИЕ ТРЕВОГИ ===");
+        System.out.printf("ID системы: %s%n", event.getSystemId());
+        System.out.printf("Тип системы: %s%n", event.getSystemType());
+        System.out.printf("Тип события: %s%n", event.getEventType());
+        System.out.printf("Описание: %s%n", event.getDescription());
+        System.out.printf("Время: %s%n", event.getTimestamp());
+        System.out.printf("Требуется действие: %s%n", event.isRequiresResponse() ? "ДА" : "НЕТ");
+    }
+
+    public void displayStatusReport(SystemStatusReport report) {
+        if (report == null) {
+            displayError("Отчет о состоянии не найден");
+            return;
+        }
+
+        System.out.println("\n=== ДЕТАЛЬНЫЙ ОТЧЕТ О СОСТОЯНИИ ===");
+        System.out.printf("ID системы: %s%n", report.getSystemId());
+        System.out.printf("Местоположение: %s%n", report.getLocation());
+        System.out.printf("Режим безопасности: %s%n", report.getSecurityMode());
+        System.out.printf("Охрана: %s%n", report.isArmed() ? "ВКЛЮЧЕНА" : "ВЫКЛЮЧЕНА");
+        System.out.printf("Уровень батареи: %d%%%n", report.getBatteryLevel());
+        System.out.printf("Сила сигнала: %d/5%n", report.getSignalStrength());
+
+        if (report instanceof HomeAlarmStatusReport homeReport) {
+            displayHomeAlarmDetails(homeReport);
+        } else if (report instanceof BiometricLockStatusReport lockReport) {
+            displayBiometricLockDetails(lockReport);
+        } else if (report instanceof CarAlarmStatusReport carReport) {
+            displayCarAlarmDetails(carReport);
+        }
+    }
+
+    private void displayHomeAlarmDetails(HomeAlarmStatusReport report) {
+        System.out.println("\n--- ДАТЧИКИ И НАСТРОЙКИ ---");
+        System.out.printf("Датчики дверей: %s%n", report.isDoorSensorsActive() ? "АКТИВНЫ" : "НЕАКТИВНЫ");
+        System.out.printf("Датчики окон: %s%n", report.isWindowSensorsActive() ? "АКТИВНЫ" : "НЕАКТИВНЫ");
+        System.out.printf("Датчики движения: %s%n", report.isMotionSensorsActive() ? "АКТИВНЫ" : "НЕАКТИВНЫ");
+        System.out.printf("Чувствительность: %d/5%n", report.getSensitivityLevel());
+        System.out.printf("Тихий режим: %s%n", report.isSilentMode() ? "ВКЛЮЧЕН" : "ВЫКЛЮЧЕН");
+        System.out.printf("Звук сигнализации: %s%n", report.getAlarmSound());
+    }
+
+    private void displayBiometricLockDetails(BiometricLockStatusReport report) {
+        System.out.println("\n--- БИОМЕТРИЯ И ДОСТУП ---");
+        System.out.printf("Авторизованных: %d пользователей%n", report.getAuthorizedUsersCount());
+        System.out.printf("Неудачных попыток: %d%n", report.getFailedAttempts());
+        System.out.printf("Отпечатки пальцев: %s%n", report.isFingerprintEnabled() ? "ВКЛЮЧЕНЫ" : "ВЫКЛЮЧЕНЫ");
+        System.out.printf("Распознавание лица: %s%n", report.isFaceRecognitionEnabled() ? "ВКЛЮЧЕНО" : "ВЫКЛЮЧЕНО");
+        System.out.printf("Статус замка: %s%n", report.getLockStatus());
+        System.out.printf("Автоблокировка: %d сек%n", report.getAutoLockDelay());
+    }
+
+    private void displayCarAlarmDetails(CarAlarmStatusReport report) {
+        System.out.println("\n--- ДАТЧИКИ АВТОСИГНАЛИЗАЦИИ ---");
+        System.out.printf("Датчик удара: %s%n", report.isShockSensorActive() ? "АКТИВЕН" : "НЕАКТИВЕН");
+        System.out.printf("Датчик наклона: %s%n", report.isTiltSensorActive() ? "АКТИВЕН" : "НЕАКТИВЕН");
+        System.out.printf("Датчик разбития: %s%n", report.isGlassBreakSensorActive() ? "АКТИВЕН" : "НЕАКТИВЕН");
+        System.out.printf("Дист. запуск: %s%n", report.isRemoteStartEnabled() ? "ВКЛЮЧЕН" : "ВЫКЛЮЧЕН");
+        System.out.printf("Громкость: %s%n", report.getAlarmVolume());
+        System.out.printf("Режим паники: %d сек%n", report.getPanicModeDuration());
+    }
+
+    public void waitForEnter() {
+        ConsoleInputHandler.waitForEnter();
+    }
 
     public void displayPrompt(String prompt) {
         System.out.print(prompt + ": ");
