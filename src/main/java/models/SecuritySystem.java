@@ -133,7 +133,7 @@ public abstract class SecuritySystem {
     public void setLocation(String newLocation) {
         this.location = (newLocation != null) && (!newLocation.isBlank()) ? newLocation : this.location;
         if (csvLogger != null) {
-            csvLogger.logEvent(systemId, EventType.CONFIG_CHANGED, "Location: " + newLocation);
+            csvLogger.logEvent(this, EventType.CONFIG_CHANGED, "Location: " + newLocation);
         }
     }
 

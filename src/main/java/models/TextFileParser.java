@@ -1,5 +1,7 @@
 package models;
 
+import config.ConfigManager;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -8,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TextFileParser {
+    private final ConfigManager config = ConfigManager.getInstance();
     private String currentFileName;
     private int totalObjectsFound;
     private int totalPropertiesFound;
@@ -73,7 +76,7 @@ public class TextFileParser {
     );
 
     public TextFileParser() {
-        this.currentFileName = "D:\\docs\\вуз\\3 курс\\java\\lab5\\lab\\src\\main\\java\\security_systems.txt";
+        this.currentFileName = config.getString("file.default.path");
         this.totalObjectsFound = 0;
         this.totalPropertiesFound = 0;
         this.totalPropertiesMissing = 0;
@@ -81,7 +84,7 @@ public class TextFileParser {
 
     public TextFileParser(String fileName) {
         this.currentFileName = (fileName != null && !fileName.isBlank()) ? fileName
-                : "D:\\docs\\вуз\\3 курс\\java\\lab5\\lab\\src\\main\\java\\security_systems.txt";
+                : config.getString("file.default.path");
         this.totalObjectsFound = 0;
         this.totalPropertiesFound = 0;
         this.totalPropertiesMissing = 0;
@@ -96,11 +99,9 @@ public class TextFileParser {
         this.totalObjectsFound = 0;
         this.totalPropertiesFound = 0;
         this.totalPropertiesMissing = 0;
-
         try {
             String fileContent = readFileContent(fileName);
             List<ParsedObject> parsedObjects = parseFileContent(fileContent);
-
             for (ParsedObject parsedObject : parsedObjects) {
                 SecuritySystem system = buildSecuritySystem(parsedObject);
                 if (system != null) {
@@ -108,12 +109,10 @@ public class TextFileParser {
                     totalObjectsFound++;
                 }
             }
-
         } catch (IOException e) {
-            System.out.println("Ошибка чтения файла: " + e.getMessage());
+            System.out.println(config.getString("error.file.read") + " " + e.getMessage());
             return new ArrayList<>();
         }
-
         return systems;
     }
 
@@ -183,17 +182,13 @@ public class TextFileParser {
      */
     private ParsedObject parseObjectContent(String objectType, String content) {
         String normalizedObjectType = objectType.toLowerCase();
-
         if (!VALID_SYSTEM_TYPES.containsKey(normalizedObjectType)) {
-            System.out.println("Неизвестный тип объекта: " + objectType);
+            System.out.println(config.getString("error.unknown.type") + " " + objectType);
             return null;
         }
-
         ParsedObject parsedObject = new ParsedObject(normalizedObjectType);
         Set<String> validProperties = VALID_SYSTEM_TYPES.get(normalizedObjectType);
-
         parseFusedProperties(parsedObject, normalizedObjectType, content, validProperties);
-
         return parsedObject;
     }
 
@@ -202,15 +197,12 @@ public class TextFileParser {
      */
     private void parseFusedProperties(ParsedObject parsedObject, String objectType, String content, Set<String> validProperties) {
         String normalizedContent = content.toLowerCase();
-
         for (String property : validProperties) {
             int propertyIndex = normalizedContent.indexOf(property.toLowerCase());
             if (propertyIndex == -1) continue;
-
             int valueStart = propertyIndex + property.length();
             if (valueStart >= content.length()) continue;
 
-            // Оставить только имя свойства
             while (valueStart < content.length() &&
                     (content.charAt(valueStart) == ':' || Character.isWhitespace(content.charAt(valueStart)))) {
                 valueStart++;
@@ -218,22 +210,21 @@ public class TextFileParser {
 
             if (valueStart >= content.length()) continue;
 
-            // Значение для свойства
             String valueContent = extractValueUntilNextProperty(content, valueStart, validProperties);
-
             if (!valueContent.isEmpty()) {
                 Object parsedValue = parseValue(objectType, property, valueContent);
                 if (parsedValue != null) {
                     parsedObject.properties.put(property, parsedValue);
                     totalPropertiesFound++;
-                    System.out.println("Найдено свойство: " + property + " = " + parsedValue);
+                    System.out.println(config.getString("error.property.found") + " " + property + " = " + parsedValue);
                 } else {
                     totalPropertiesMissing++;
-                    System.out.println("Не удалось распарсить свойство: " + property + " = " + valueContent);
+                    System.out.println(config.getString("error.property.parse") + " " + property + " = " + valueContent);
                 }
             }
         }
     }
+
 
     private String extractValueUntilNextProperty(String content, int startPosition, Set<String> validProperties) {
         if (startPosition >= content.length()) {
@@ -361,9 +352,10 @@ public class TextFileParser {
     }
 
     private HomeAlarmSystem buildHomeAlarmSystem(ParsedObject parsedObject) {
-        String id = (String) parsedObject.properties.getOrDefault("id", "DEFAULT_HOME_" + System.currentTimeMillis());
-        String location = (String) parsedObject.properties.getOrDefault("location", "Неизвестное местоположение");
-
+        String id = (String) parsedObject.properties.getOrDefault("id",
+                config.getString("default.system.id.home") + System.currentTimeMillis());
+        String location = (String) parsedObject.properties.getOrDefault("location",
+                config.getString("default.location"));
         HomeAlarmSystem system = new HomeAlarmSystem(id, location);
 
         if (parsedObject.properties.containsKey("batterylevel")) {
@@ -381,7 +373,7 @@ public class TextFileParser {
             try {
                 system.setSecurityMode(securityMode);
             } catch (IllegalArgumentException e) {
-                system.setSecurityMode("Отключено");
+                system.setSecurityMode(config.getString("default.security.mode"));
             }
         }
 
@@ -418,9 +410,10 @@ public class TextFileParser {
     }
 
     private BiometricLock buildBiometricLock(ParsedObject parsedObject) {
-        String id = (String) parsedObject.properties.getOrDefault("id", "DEFAULT_LOCK_" + System.currentTimeMillis());
-        String location = (String) parsedObject.properties.getOrDefault("location", "Неизвестное местоположение");
-
+        String id = (String) parsedObject.properties.getOrDefault("id",
+                config.getString("default.system.id.lock") + System.currentTimeMillis());
+        String location = (String) parsedObject.properties.getOrDefault("location",
+                config.getString("default.location"));
         BiometricLock lock = new BiometricLock(id, location);
 
         if (parsedObject.properties.containsKey("batterylevel")) {
@@ -438,7 +431,7 @@ public class TextFileParser {
             try {
                 lock.setSecurityMode(securityMode);
             } catch (IllegalArgumentException e) {
-                lock.setSecurityMode("Отключено");
+                lock.setSecurityMode(config.getString("default.security.mode"));
             }
         }
 
@@ -472,9 +465,10 @@ public class TextFileParser {
     }
 
     private CarAlarmSystem buildCarAlarmSystem(ParsedObject parsedObject) {
-        String id = (String) parsedObject.properties.getOrDefault("id", "DEFAULT_CAR_" + System.currentTimeMillis());
-        String location = (String) parsedObject.properties.getOrDefault("location", "Неизвестное местоположение");
-
+        String id = (String) parsedObject.properties.getOrDefault("id",
+                config.getString("default.system.id.car") + System.currentTimeMillis());
+        String location = (String) parsedObject.properties.getOrDefault("location",
+                config.getString("default.location"));
         CarAlarmSystem system = new CarAlarmSystem(id, location);
 
         if (parsedObject.properties.containsKey("batterylevel")) {
@@ -492,7 +486,7 @@ public class TextFileParser {
             try {
                 system.setSecurityMode(securityMode);
             } catch (IllegalArgumentException e) {
-                system.setSecurityMode("Отключено");
+                system.setSecurityMode(config.getString("default.security.mode"));
             }
         }
 
@@ -528,6 +522,7 @@ public class TextFileParser {
         return system;
     }
 
+
     /**
      * Хранит информацию о спаршенных объектах
      */
@@ -542,17 +537,17 @@ public class TextFileParser {
     }
 
     public void printStatistics() {
-        System.out.println("\n=== СТАТИСТИКА ЧТЕНИЯ ФАЙЛА ===");
-        System.out.println("Файл: " + currentFileName);
-        System.out.println("Найдено объектов: " + totalObjectsFound);
-        System.out.println("Успешно прочитано свойств: " + totalPropertiesFound);
-        System.out.println("Не найдено свойств: " + totalPropertiesMissing);
-
+        System.out.println(config.getString("parser.stats.title"));
+        System.out.println(config.getString("parser.stats.file") + " " + currentFileName);
+        System.out.println(config.getString("parser.stats.objects") + " " + totalObjectsFound);
+        System.out.println(config.getString("parser.stats.properties.success") + " " + totalPropertiesFound);
+        System.out.println(config.getString("parser.stats.properties.missing") + " " + totalPropertiesMissing);
         if (totalObjectsFound > 0) {
             double successRate = (double) totalPropertiesFound / (totalPropertiesFound + totalPropertiesMissing) * 100;
-            System.out.printf("Процент успешного чтения: %.1f%%\n", successRate);
+            System.out.printf(config.getString("parser.stats.success.rate") + " %.1f%%\n", successRate);
         }
     }
+
 
     public String getCurrentFileName() {
         return currentFileName;
