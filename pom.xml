@@ -7,7 +7,7 @@
 
     <groupId>com.security</groupId>
     <artifactId>security-system</artifactId>
-    <version>1.0.0</version>
+    <version>6.0</version>
     <packaging>jar</packaging>
 
     <name>Security System Management</name>
