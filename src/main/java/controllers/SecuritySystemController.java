@@ -5,7 +5,10 @@ import models.CSVLogger;
 import models.dto.EmergencyEvent;
 import models.dto.SystemStatusReport;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class SecuritySystemController {
@@ -185,6 +188,43 @@ public class SecuritySystemController {
 
     public CSVLogger getCsvLogger() {
         return csvLogger;
+    }
+
+    public String getAllAsString() {
+        StringBuilder sb = new StringBuilder();
+        for (SecuritySystem sys : systems) {
+            sb.append(sys.toString()).append("\n");
+        }
+        return sb.toString();
+    }
+    public SecuritySystem getSystemById(String id) {
+        for (SecuritySystem sys : systems) {
+            if (sys.getSystemId().equals(id)) return sys;
+        }
+        return null;
+    }
+    public TextFileParser getTextFileParser() {
+        return textFileParser;
+    }
+
+    public void saveSystemsToFile(String filename) {
+        try (PrintWriter out = new PrintWriter(new FileWriter(filename))) {
+            for (SecuritySystem s : systems) {
+                out.println(s.toString()); // toString с форматом "тип поля=знач..."
+            }
+        } catch (Exception e) {}
+    }
+
+    public boolean removeSystemById(String id) {
+        Iterator<SecuritySystem> it = systems.iterator();
+        while (it.hasNext()) {
+            SecuritySystem sys = it.next();
+            if (sys.getSystemId().equals(id)) {
+                it.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     public void close() {
