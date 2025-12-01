@@ -12,7 +12,7 @@ public class CSVLogger {
     private int logInterval = 10;
     private final String logFilePath;
 
-    public CSVLogger() {
+    public CSVLogger(String s) {
         this.logFilePath = config.getString("file.csv.log");
         initializeWriter();
     }

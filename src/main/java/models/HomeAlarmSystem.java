@@ -25,6 +25,7 @@ public class HomeAlarmSystem extends SecuritySystem {
 
     @Override
     public boolean performSelfTest() {
+        ensureRandomInitialized();
         boolean doorTest = random.nextDouble() > 0.1;
         boolean windowTest = random.nextDouble() > 0.1;
         boolean motionTest = random.nextDouble() > 0.1;
@@ -39,6 +40,7 @@ public class HomeAlarmSystem extends SecuritySystem {
 
     @Override
     public EmergencyEvent simulateEmergency() {
+        ensureRandomInitialized();
         String[] emergencyTypes = {"Вторжение через дверь", "Разбито окно", "Обнаружено движение"};
         String selectedEmergency = emergencyTypes[random.nextInt(emergencyTypes.length)];
 
@@ -83,6 +85,7 @@ public class HomeAlarmSystem extends SecuritySystem {
 
     @Override
     public boolean checkConnectivity() {
+        ensureRandomInitialized();
         boolean connected = random.nextDouble() > 0.2;
         if (csvLogger != null) {
             csvLogger.logEvent(this, EventType.CONNECTIVITY_CHECK);

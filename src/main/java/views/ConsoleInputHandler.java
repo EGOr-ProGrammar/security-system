@@ -1,204 +1,106 @@
 package views;
 
-import config.ConfigManager;
-
+import java.util.InputMismatchException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class ConsoleInputHandler {
-    private static final Scanner scanner = new Scanner(System.in);
-    private static final ConfigManager config = ConfigManager.getInstance();
+    private static Scanner scanner = new Scanner(System.in);
+    private static volatile boolean isRunning = true;
 
-    public static int getIntInput(String prompt, int min, int max) {
-        while (true) {
+    public static void shutdown() {
+        isRunning = false;
+        if (scanner != null) {
             try {
-                System.out.print(prompt);
-                String input = scanner.nextLine().trim();
-                if (input.isEmpty()) {
-                    System.out.println(config.getString("error.prefix") + " " +
-                            config.getString("error.input.empty") + " " +
-                            config.getString("error.input.empty.number"));
-                    continue;
-                }
+                scanner.close();
+            } catch (Exception ignored) {
 
-                int value = Integer.parseInt(input);
-                if (value < min || value > max) {
-                    System.out.printf(config.getString("error.number.range") + "\n", min, max);
-                    continue;
-                }
-
-                return value;
-            } catch (NumberFormatException e) {
-                System.out.println(config.getString("error.prefix") + " " +
-                        config.getString("error.number.format"));
-            } catch (Exception e) {
-                System.out.println(config.getString("error.unexpected") + " " +
-                        e.getMessage() + config.getString("error.try.again"));
             }
         }
     }
 
-    public static int getIntInput(String prompt) {
-        while (true) {
+    public static int getIntInput(String prompt, int min, int max) {
+        if (!isRunning) return 0;
+
+        while (isRunning) {
             try {
                 System.out.print(prompt);
-                String input = scanner.nextLine().trim();
-                if (input.isEmpty()) {
-                    System.out.println(config.getString("error.prefix") + " " +
-                            config.getString("error.input.empty") + " " +
-                            config.getString("error.input.empty.number"));
-                    continue;
+                if (!scanner.hasNextLine()) {
+                    return 0;
                 }
 
-                return Integer.parseInt(input);
-            } catch (NumberFormatException e) {
-                System.out.println(config.getString("error.prefix") + " " +
-                        config.getString("error.number.format"));
-            } catch (Exception e) {
-                System.out.println(config.getString("error.unexpected") + " " +
-                        e.getMessage() + config.getString("error.try.again"));
+                int value = scanner.nextInt();
+                scanner.nextLine(); // очистка буфера
+
+                if (value >= min && value <= max) {
+                    return value;
+                } else {
+                    System.out.println("Введите число от " + min + " до " + max);
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Ошибка: введите корректное число");
+                scanner.nextLine(); // очистка буфера
+            } catch (NoSuchElementException e) {
+                // Ввод закрыт, выход
+                return 0;
+            } catch (IllegalStateException e) {
+                // Scanner закрыт
+                return 0;
             }
         }
+        return 0;
     }
 
     public static String getStringInput(String prompt) {
-        while (true) {
-            try {
-                System.out.print(prompt);
-                String input = scanner.nextLine().trim();
-                if (input.isEmpty()) {
-                    System.out.println(config.getString("error.prefix") + " " +
-                            config.getString("error.input.empty") + " " +
-                            config.getString("error.input.empty.text"));
-                    continue;
-                }
+        if (!isRunning) return "";
 
-                return input;
-            } catch (Exception e) {
-                System.out.println(config.getString("error.unexpected") + " " +
-                        e.getMessage() + config.getString("error.try.again"));
+        try {
+            System.out.print(prompt);
+            if (!scanner.hasNextLine()) {
+                return "";
             }
-        }
-    }
-
-    public static String getStringInput(String prompt, List<String> allowedValues) {
-        while (true) {
-            try {
-                System.out.print(prompt);
-                String input = scanner.nextLine().trim();
-                if (input.isEmpty()) {
-                    System.out.println(config.getString("error.prefix") + " " +
-                            config.getString("error.input.empty") + " " +
-                            config.getString("prompt.enter.values") + " " + allowedValues);
-                    continue;
-                }
-
-                if (!allowedValues.contains(input)) {
-                    System.out.println(config.getString("error.prefix") + " " +
-                            config.getString("error.allowed.values") + " " +
-                            String.join(", ", allowedValues) + config.getString("error.try.again"));
-                    continue;
-                }
-
-                return input;
-            } catch (Exception e) {
-                System.out.println(config.getString("error.unexpected") + " " +
-                        e.getMessage() + config.getString("error.try.again"));
-            }
-        }
-    }
-
-    public static boolean getBooleanInput(String prompt) {
-        while (true) {
-            try {
-                System.out.print(prompt + " " + config.getString("prompt.yes.no") + " ");
-                String input = scanner.nextLine().trim().toLowerCase();
-                if (input.isEmpty()) {
-                    System.out.println(config.getString("error.prefix") + " " +
-                            config.getString("error.boolean.format"));
-                    continue;
-                }
-
-                if (input.equals("да") || input.equals("д") || input.equals("yes") || input.equals("y")) {
-                    return true;
-                } else if (input.equals("нет") || input.equals("н") || input.equals("no") || input.equals("n")) {
-                    return false;
-                } else {
-                    System.out.println(config.getString("error.prefix") + " " +
-                            config.getString("error.boolean.format"));
-                }
-
-            } catch (Exception e) {
-                System.out.println(config.getString("error.unexpected") + " " +
-                        e.getMessage() + config.getString("error.try.again"));
-            }
-        }
-    }
-
-    public static double getDoubleInput(String prompt, double min, double max) {
-        while (true) {
-            try {
-                System.out.print(prompt);
-                String input = scanner.nextLine().trim();
-                if (input.isEmpty()) {
-                    System.out.println(config.getString("error.prefix") + " " +
-                            config.getString("error.input.empty") + " " +
-                            config.getString("error.input.empty.number"));
-                    continue;
-                }
-
-                double value = Double.parseDouble(input.replace(',', '.'));
-                if (value < min || value > max) {
-                    System.out.printf(config.getString("error.double.range") + "\n", min, max);
-                    continue;
-                }
-
-                return value;
-            } catch (NumberFormatException e) {
-                System.out.println(config.getString("error.prefix") + " " +
-                        config.getString("error.double.format"));
-            } catch (Exception e) {
-                System.out.println(config.getString("error.unexpected") + " " +
-                        e.getMessage() + config.getString("error.try.again"));
-            }
+            return scanner.nextLine().trim();
+        } catch (NoSuchElementException | IllegalStateException e) {
+            return "";
         }
     }
 
     public static boolean getConfirmation(String prompt) {
-        while (true) {
-            String input = getStringInput(prompt + " " + config.getString("prompt.confirm") + " ").toLowerCase();
-            if (input.equals("y") || input.equals("yes") || input.equals("да") || input.equals("д")) {
-                return true;
-            } else if (input.equals("n") || input.equals("no") || input.equals("нет") || input.equals("н")) {
+        if (!isRunning) return false;
+
+        try {
+            System.out.print(prompt + " (y/n): ");
+            if (!scanner.hasNextLine()) {
                 return false;
-            } else {
-                System.out.println(config.getString("error.prefix") + " " +
-                        config.getString("error.confirmation.format"));
             }
+            String input = scanner.nextLine().trim().toLowerCase();
+            return input.equals("y") || input.equals("yes") || input.equals("д") || input.equals("да");
+        } catch (NoSuchElementException | IllegalStateException e) {
+            return false;
         }
     }
 
     public static int getChoiceFromList(String prompt, List<String> options) {
+        if (!isRunning) return 0;
+
         System.out.println(prompt);
         for (int i = 0; i < options.size(); i++) {
-            System.out.printf("%d. %s\n", i + 1, options.get(i));
+            System.out.println((i + 1) + ". " + options.get(i));
         }
-
-        return getIntInput(config.getString("prompt.choose") + " ", 1, options.size()) - 1;
+        return getIntInput("Выберите вариант: ", 1, options.size()) - 1;
     }
 
     public static void waitForEnter() {
-        System.out.print(config.getString("prompt.enter.to.continue"));
-        scanner.nextLine();
-    }
+        if (!isRunning) return;
 
-    public static void clearScanner() {
-        if (scanner.hasNextLine()) {
-            scanner.nextLine();
+        try {
+            System.out.print("Нажмите Enter для продолжения...");
+            if (scanner.hasNextLine()) {
+                scanner.nextLine();
+            }
+        } catch (NoSuchElementException | IllegalStateException ignored) {
+
         }
-    }
-
-    public static void closeScanner() {
-        scanner.close();
     }
 }

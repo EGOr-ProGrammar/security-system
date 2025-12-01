@@ -28,6 +28,7 @@ public class BiometricLock extends SecuritySystem {
 
     @Override
     public boolean performSelfTest() {
+        ensureRandomInitialized();
         boolean sensorTest = random.nextDouble() > 0.1;
         boolean memoryTest = random.nextDouble() > 0.05;
         boolean motorTest = random.nextDouble() > 0.15;
@@ -42,6 +43,7 @@ public class BiometricLock extends SecuritySystem {
 
     @Override
     public EmergencyEvent simulateEmergency() {
+        ensureRandomInitialized();
         String[] emergencyTypes = {"Множественные неудачные попытки входа", "Попытка взлома", "Обнаружен несанкционированный доступ"};
         String selectedEmergency = emergencyTypes[random.nextInt(emergencyTypes.length)];
 
@@ -86,6 +88,7 @@ public class BiometricLock extends SecuritySystem {
 
     @Override
     public boolean checkConnectivity() {
+        ensureRandomInitialized();
         boolean connected = random.nextDouble() > 0.15;
         if (csvLogger != null) {
             csvLogger.logEvent(this, EventType.CONNECTIVITY_CHECK);

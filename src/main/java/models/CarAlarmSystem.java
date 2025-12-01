@@ -25,6 +25,7 @@ public class CarAlarmSystem extends SecuritySystem {
 
     @Override
     public boolean performSelfTest() {
+        ensureRandomInitialized();
         boolean shockTest = random.nextDouble() > 0.1;
         boolean tiltTest = random.nextDouble() > 0.15;
         boolean glassTest = random.nextDouble() > 0.1;
@@ -40,6 +41,7 @@ public class CarAlarmSystem extends SecuritySystem {
 
     @Override
     public EmergencyEvent simulateEmergency() {
+        ensureRandomInitialized();
         String[] emergencyTypes = {"Удар по автомобилю", "Наклон транспорта", "Разбито стекло"};
         String selectedEmergency = emergencyTypes[random.nextInt(emergencyTypes.length)];
 
@@ -86,6 +88,7 @@ public class CarAlarmSystem extends SecuritySystem {
 
     @Override
     public boolean checkConnectivity() {
+        ensureRandomInitialized();
         boolean connected = random.nextDouble() > 0.25;
         if (csvLogger != null) {
             csvLogger.logEvent(this, EventType.CONNECTIVITY_CHECK);
