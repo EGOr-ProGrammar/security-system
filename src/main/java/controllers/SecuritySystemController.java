@@ -85,6 +85,10 @@ public class SecuritySystemController {
         return currentFileName;
     }
 
+    public void setCurrentFileName(String fileName) {
+        this.currentFileName = fileName;
+    }
+
     public boolean armSystem(int index) {
         SecuritySystem system = getSystem(index);
         if (system != null) {
@@ -207,12 +211,15 @@ public class SecuritySystemController {
         return textFileParser;
     }
 
-    public void saveSystemsToFile(String filename) {
+    public Boolean saveSystemsToFile(String filename) {
         try (PrintWriter out = new PrintWriter(new FileWriter(filename))) {
             for (SecuritySystem s : systems) {
                 out.println(s.toString()); // toString с форматом "тип поля=знач..."
             }
+            return true;
         } catch (Exception e) {}
+
+        return false;
     }
 
     public boolean removeSystemById(String id) {

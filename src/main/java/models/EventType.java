@@ -40,7 +40,19 @@ public enum EventType {
     // Общие
     INFO("Информация"),
     WARNING("Предупреждение"),
-    ERROR("Ошибка");
+    ERROR("Ошибка"),
+
+    CLIENT_CONNECTED("Клиент подключен"),
+    CLIENT_DISCONNECTED("Клиент отключен"),
+    COMMAND_RECEIVED("Получена команда"),
+    COMMAND_EXECUTED("Команда выполнена"),
+    COMMAND_FAILED("Ошибка выполнения команды"),
+    FILE_LOADED("Файл загружен"),
+    FILE_SAVED("Файл сохранен"),
+    SERVER_STARTED("Сервер запущен"),
+    SERVER_STOPPED("Сервер остановлен");
+
+
 
     private final String description;
 
